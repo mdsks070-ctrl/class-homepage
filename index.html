@@ -1,1561 +1,838 @@
 <!DOCTYPE html>
-<!-- v2.0 GitHub Pages Edition -->
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>6학년 5반 학급 홈페이지</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⭐ 우리 학원 포인트</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --primary:#5b6ef5; --primary2:#8b5bf5; --plus:#10b981; --minus:#f43f5e;
+  --bg:#f4f6fd; --card:#fff; --text:#252a38; --muted:#9aa0b5; --line:#e8ebf5;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Pretendard Variable',Pretendard,'Malgun Gothic',sans-serif;
+  background:linear-gradient(160deg,#eef2ff 0%,#fdf4ff 50%,#fff7ed 100%);
+  color:var(--text);min-height:100vh;
+}
+.wrap{max-width:760px;margin:0 auto;padding:16px 16px 60px}
 
-  <!-- Pretendard 폰트 -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { sans: ['Pretendard Variable', 'Pretendard', 'sans-serif'] },
-        }
-      }
-    };
-  </script>
-  <!-- FontAwesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- React -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <!-- Firebase -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, updateDoc, doc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
-    window.firebaseModules = {
-      initializeApp, getAuth, signInAnonymously, onAuthStateChanged,
-      getFirestore, collection, addDoc, updateDoc, doc, onSnapshot, deleteDoc,
-      getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject
-    };
-    window.dispatchEvent(new Event('firebase-ready'));
-  </script>
+/* 헤더 */
+.hero{
+  position:relative;overflow:hidden;border-radius:24px;color:#fff;
+  background:linear-gradient(135deg,#5b6ef5,#8b5bf5,#c65bf5);
+  padding:30px 26px;margin-top:8px;box-shadow:0 10px 30px rgba(91,110,245,.25);
+}
+.hero .deco{position:absolute;font-size:90px;opacity:.18;right:-10px;top:-14px;animation:floaty 4s ease-in-out infinite}
+.hero .deco2{position:absolute;font-size:38px;opacity:.25;right:110px;bottom:10px;animation:floaty 4s ease-in-out infinite 1s}
+.hero .badge{display:inline-block;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);
+  padding:4px 12px;border-radius:999px;font-size:12px;font-weight:800;margin-bottom:10px}
+.hero h1{font-size:27px;font-weight:900;letter-spacing:-.5px}
+.hero p{margin-top:6px;font-size:14px;font-weight:600;color:rgba(255,255,255,.85)}
+.admin-chip{position:absolute;top:18px;right:18px;background:#fff;color:#5b6ef5;font-size:12px;
+  font-weight:900;padding:6px 12px;border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,.15)}
 
-  <style>
-    body { background: linear-gradient(160deg, #eef2ff 0%, #fdf4ff 45%, #fff7ed 100%); min-height: 100vh; }
-    @keyframes floaty { 0%,100%{transform:translateY(0) rotate(-3deg)} 50%{transform:translateY(-12px) rotate(3deg)} }
-    @keyframes popIn { 0%{opacity:0;transform:scale(.92) translateY(10px)} 100%{opacity:1;transform:scale(1) translateY(0)} }
-    @keyframes fadeUp { 0%{opacity:0;transform:translateY(14px)} 100%{opacity:1;transform:translateY(0)} }
-    @keyframes shine { 0%{background-position:-200% center} 100%{background-position:200% center} }
-    @keyframes wiggle { 0%,100%{transform:rotate(-4deg)} 50%{transform:rotate(4deg)} }
-    .anim-float { animation: floaty 4s ease-in-out infinite; }
-    .anim-pop { animation: popIn .45s cubic-bezier(.2,.9,.3,1.2) both; }
-    .anim-fadeup { animation: fadeUp .5s ease both; }
-    .anim-wiggle { animation: wiggle 1.6s ease-in-out infinite; }
-    .stagger > * { animation: fadeUp .5s ease both; }
-    .stagger > *:nth-child(1){animation-delay:.02s} .stagger > *:nth-child(2){animation-delay:.06s}
-    .stagger > *:nth-child(3){animation-delay:.1s} .stagger > *:nth-child(4){animation-delay:.14s}
-    .stagger > *:nth-child(5){animation-delay:.18s} .stagger > *:nth-child(6){animation-delay:.22s}
-    .stagger > *:nth-child(7){animation-delay:.26s} .stagger > *:nth-child(8){animation-delay:.3s}
-    .text-shine {
-      background: linear-gradient(90deg,#fff 20%,#fde68a 40%,#fff 60%);
-      background-size: 200% auto; -webkit-background-clip: text; background-clip: text;
-      -webkit-text-fill-color: transparent; animation: shine 3s linear infinite;
-    }
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-thumb { background: #c7d2fe; border-radius: 8px; }
-    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
-  </style>
+/* 탭 */
+.tabs{display:flex;gap:8px;margin:16px 0}
+.tab{flex:1;padding:14px;border:none;border-radius:16px;background:rgba(255,255,255,.8);
+  color:var(--muted);font-size:15px;font-weight:800;cursor:pointer;transition:.2s;font-family:inherit}
+.tab:hover{transform:translateY(-2px)}
+.tab.active{background:linear-gradient(135deg,#5b6ef5,#8b5bf5);color:#fff;box-shadow:0 6px 16px rgba(91,110,245,.35)}
+
+/* 카드 공통 */
+.card{background:var(--card);border-radius:20px;padding:22px;box-shadow:0 3px 14px rgba(60,70,130,.07);
+  margin-bottom:14px;animation:fadeup .4s ease both}
+.card h2{font-size:17px;font-weight:900;margin-bottom:14px}
+label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:12px 0 5px}
+input,select,textarea{
+  width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:12px;
+  font-size:16px;font-weight:700;background:#fafbff;font-family:inherit;transition:.15s
+}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);background:#fff}
+textarea{min-height:110px;font-weight:600}
+.btn{display:block;width:100%;padding:14px;margin-top:14px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,#5b6ef5,#8b5bf5);color:#fff;font-size:16px;font-weight:900;
+  cursor:pointer;font-family:inherit;transition:.15s;box-shadow:0 5px 14px rgba(91,110,245,.3)}
+.btn:hover{transform:translateY(-1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn.plus{background:linear-gradient(135deg,#10b981,#14b8a6);box-shadow:0 5px 14px rgba(16,185,129,.3)}
+.btn.minus{background:linear-gradient(135deg,#f43f5e,#ec4899);box-shadow:0 5px 14px rgba(244,63,94,.3)}
+.btn.ghost{background:#eef0f9;color:#5a6078;box-shadow:none}
+.btn.small{display:inline-block;width:auto;padding:9px 14px;font-size:13px;margin:0;border-radius:11px}
+.btn.warn{background:#fff;color:var(--minus);border:1.5px solid #fecdd3;box-shadow:none}
+.error{display:none;background:#fff1f2;border:1.5px solid #fecdd3;color:#e11d48;font-size:14px;
+  font-weight:700;border-radius:12px;padding:11px;margin-top:12px;text-align:center;animation:pop .3s ease}
+.notice{background:#f0fdf4;border:1.5px solid #bbf7d0;color:#15803d;font-size:14px;font-weight:700;
+  border-radius:12px;padding:11px;margin-bottom:12px;text-align:center;animation:pop .3s ease}
+.hidden{display:none!important}
+.hint{font-size:12px;color:var(--muted);font-weight:600;text-align:center;margin-top:10px}
+
+/* 학생 포인트 카드 */
+.point-hero{position:relative;overflow:hidden;text-align:center;padding:34px 20px;border-radius:22px;
+  background:linear-gradient(135deg,#5b6ef5,#8b5bf5);color:#fff;margin-bottom:14px;
+  box-shadow:0 10px 26px rgba(91,110,245,.3);animation:pop .4s ease}
+.point-hero .deco{position:absolute;font-size:110px;opacity:.15;right:-16px;bottom:-30px;animation:wiggle 2s ease-in-out infinite}
+.point-hero .name{font-size:16px;font-weight:800;opacity:.9}
+.point-hero .pts{font-size:56px;font-weight:900;margin:8px 0 2px;letter-spacing:-1px}
+.point-hero .unit{font-size:16px;font-weight:800;opacity:.9}
+.point-hero .cum{margin-top:10px;font-size:13px;font-weight:700;background:rgba(255,255,255,.2);
+  display:inline-block;padding:6px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.3)}
+
+/* 내역 */
+.hist-item{display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:12px 4px;border-bottom:1px solid #f1f3fa;font-size:14px}
+.hist-item:last-child{border-bottom:none}
+.hist-item .r{flex:1;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hist-item .d{color:var(--muted);font-size:11px;font-weight:600;white-space:nowrap}
+.dp{color:var(--plus);font-weight:900;white-space:nowrap}
+.dm{color:var(--minus);font-weight:900;white-space:nowrap}
+.hist-scroll{max-height:400px;overflow-y:auto}
+
+/* 관리자 통계 */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat{background:#fff;border-radius:16px;padding:16px 8px;text-align:center;box-shadow:0 3px 12px rgba(60,70,130,.06)}
+.stat .v{font-size:21px;font-weight:900;color:var(--primary)}
+.stat:nth-child(2) .v{color:#d97706}
+.stat:nth-child(3) .v{color:#059669}
+.stat .k{font-size:11px;font-weight:700;color:var(--muted);margin-top:3px}
+
+/* 관리자 컨트롤/그리드 */
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.ctrl input,.ctrl select{width:auto;flex:1;min-width:110px;padding:10px 12px;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.stu{background:#fff;border:2px solid var(--line);border-radius:18px;padding:14px;cursor:pointer;
+  transition:.18s;animation:fadeup .4s ease both}
+.stu:hover{border-color:var(--primary);transform:translateY(-3px);box-shadow:0 8px 18px rgba(91,110,245,.15)}
+.stu .no{font-size:10px;font-weight:800;color:#c3c8dd}
+.stu .nm{font-size:15px;font-weight:900;margin:2px 0 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stu .row{display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:var(--muted)}
+.stu .row b{color:var(--primary);font-size:14px}
+.stu .row.sub b{color:#b9bed2;font-size:12px}
+.stu .pin{margin-top:8px;text-align:center;background:#f5f3ff;border:1px solid #ddd6fe;color:#7c3aed;
+  border-radius:10px;padding:3px;font-size:12px;font-weight:900;letter-spacing:2px}
+.empty{text-align:center;color:var(--muted);padding:36px 10px;font-weight:700}
+.empty .big{font-size:52px;margin-bottom:10px}
+
+/* 패널 (명단/일괄) */
+.panel{border-radius:18px;padding:18px;margin-bottom:14px;animation:pop .3s ease}
+.panel.blue{background:#eff6ff;border:1.5px solid #bfdbfe}
+.panel.green{background:#ecfdf5;border:1.5px solid #a7f3d0}
+.panel h3{font-size:15px;font-weight:900;margin-bottom:4px}
+.panel p{font-size:12px;font-weight:600;color:#64748b;margin-bottom:10px}
+.panel .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:520px){.panel .row2{grid-template-columns:1fr}}
+
+/* 칩 */
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{padding:8px 13px;border-radius:999px;border:1.5px solid var(--line);background:#fff;
+  font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:.12s}
+.chip:hover{border-color:var(--primary)}
+.chip.sel{background:var(--primary);border-color:var(--primary);color:#fff}
+.chip.green{color:#059669;border-color:#a7f3d0}
+.chip.green.sel{background:#10b981;border-color:#10b981;color:#fff}
+.chip.red{color:#e11d48;border-color:#fecdd3}
+.chip.red.sel{background:#f43f5e;border-color:#f43f5e;color:#fff}
+
+/* 모달 */
+.modal-bg{position:fixed;inset:0;background:rgba(25,30,50,.5);backdrop-filter:blur(3px);
+  display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+.modal{background:#fff;border-radius:22px;width:100%;max-width:430px;max-height:88vh;
+  overflow-y:auto;animation:pop .3s ease}
+.modal-head{background:linear-gradient(135deg,#5b6ef5,#8b5bf5);color:#fff;padding:20px 22px;position:relative}
+.modal-head h3{font-size:20px;font-weight:900}
+.modal-head .sub{font-size:12px;font-weight:700;opacity:.8;margin-top:2px}
+.modal-head .x{position:absolute;top:14px;right:14px;width:34px;height:34px;border:none;border-radius:10px;
+  background:rgba(255,255,255,.2);color:#fff;font-size:16px;font-weight:900;cursor:pointer}
+.modal-head .balances{display:flex;gap:8px;margin-top:12px}
+.modal-head .bal{flex:1;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.25);
+  border-radius:14px;padding:9px 12px}
+.modal-head .bal span{display:block;font-size:10px;font-weight:700;opacity:.8}
+.modal-head .bal b{font-size:18px;font-weight:900}
+.modal-head .tools{display:flex;gap:6px;margin-top:10px}
+.modal-head .tools button{flex:1;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);
+  color:#fff;font-size:12px;font-weight:800;padding:8px;border-radius:10px;cursor:pointer;font-family:inherit}
+.mtabs{display:flex;border-bottom:1.5px solid var(--line)}
+.mtab{flex:1;padding:13px;border:none;background:#fff;font-size:14px;font-weight:900;color:var(--muted);
+  cursor:pointer;font-family:inherit;border-bottom:2.5px solid transparent}
+.mtab.on-earn{color:#059669;border-bottom-color:#10b981;background:#f0fdf4}
+.mtab.on-spend{color:#e11d48;border-bottom-color:#f43f5e;background:#fff1f2}
+.mtab.on-hist{color:var(--primary);border-bottom-color:var(--primary);background:#eef2ff}
+.mbody{padding:20px 22px;background:#fafbff}
+.cancel-btn{width:32px;height:32px;border:1.5px solid #fecdd3;background:#fff1f2;color:#f43f5e;
+  border-radius:10px;cursor:pointer;font-size:13px;flex:none}
+
+/* 토스트 */
+#toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;
+  padding:11px 22px;border-radius:999px;font-size:14px;font-weight:800;box-shadow:0 8px 22px rgba(0,0,0,.18);
+  z-index:99;display:none;animation:pop .3s ease}
+
+@keyframes floaty{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-10px) rotate(3deg)}}
+@keyframes wiggle{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+@keyframes pop{0%{opacity:0;transform:scale(.94)}100%{opacity:1;transform:scale(1)}}
+@keyframes fadeup{0%{opacity:0;transform:translateY(12px)}100%{opacity:1;transform:translateY(0)}}
+::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:#cdd3ec;border-radius:8px}
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+</style>
 </head>
 <body>
-  <div id="root"></div>
+<div id="toast"></div>
+<div class="wrap">
 
-  <script type="text/babel" data-presets="react">
-    const { useState, useEffect, useRef } = React;
+  <div class="hero">
+    <div class="deco">🎈</div><div class="deco2">✨</div>
+    <span class="badge">🏫 POINT BANK</span>
+    <h1 id="academyName">우리 학원 포인트</h1>
+    <p>열심히 하면 포인트가 쌓여요! 🚀</p>
+    <span id="adminChip" class="admin-chip hidden">🛡️ 관리자 모드</span>
+  </div>
 
-    function startApp() {
-    const {
-      initializeApp, getAuth, signInAnonymously, onAuthStateChanged,
-      getFirestore, collection, addDoc, updateDoc, doc, onSnapshot, deleteDoc,
-      getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject
-    } = window.firebaseModules;
+  <div class="tabs">
+    <button class="tab active" id="tabStudent">🙋 내 포인트</button>
+    <button class="tab" id="tabAdmin">🔑 관리자</button>
+  </div>
 
-    const Icon = ({ name, size = 24, className = "" }) => (
-      <i className={`fa-solid fa-${name} ${className}`} style={{ fontSize: `${size}px` }}></i>
-    );
+  <!-- ===== 학생: 로그인 ===== -->
+  <div id="vStuLogin">
+    <div class="card" style="text-align:center">
+      <div style="font-size:60px;animation:floaty 4s ease-in-out infinite">🪙</div>
+      <h2 style="font-size:21px;margin:10px 0 2px">내 포인트 확인하기</h2>
+      <p class="hint" style="margin:0 0 14px">이름과 PIN을 입력하면 내 포인트만 안전하게 보여요</p>
+      <div style="text-align:left">
+        <label>이름</label>
+        <input id="stuName" placeholder="예: 홍길동" autocomplete="off">
+        <label>PIN (비밀번호 4자리)</label>
+        <input id="stuPin" type="password" inputmode="numeric" maxlength="4" placeholder="••••">
+      </div>
+      <div class="error" id="stuErr"></div>
+      <button class="btn" id="btnStuLogin">내 포인트 보러 가기 🚀</button>
+      <p class="hint">PIN을 모르면 선생님께 물어보세요!</p>
+    </div>
+  </div>
 
-    // ===== 사진 게시판 (Apps Script) =====
-    const PHOTO_BOARD_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyqlvFGDoP0bPNW9Xf2YcIstkFZ-5hUJgQBKlTYCUzgPYPrPv-WRfyfI9BuyvWYOn3l/exec';
-    const PHOTO_DRIVE_FOLDER_URL = 'https://drive.google.com/drive/folders/1CfGsDpBbQJwtaj8efzIHe9tUoQYLCeZ4?usp=sharing';
-    const isPhotoBoardUrlReady = /^https:\/\/script\.google\.com\/macros\/s\/.+\/exec(?:\?.*)?$/.test((PHOTO_BOARD_WEBAPP_URL || '').trim());
+  <!-- ===== 학생: 내 포인트 ===== -->
+  <div id="vStuHome" class="hidden">
+    <div class="point-hero">
+      <div class="deco">⭐</div>
+      <div class="name" id="myName"></div>
+      <div class="pts" id="myPts">0</div>
+      <div class="unit">포인트</div>
+      <div class="cum" id="myCum"></div>
+    </div>
+    <div class="card">
+      <h2>📋 내 포인트 내역</h2>
+      <div class="hist-scroll" id="myHist"></div>
+    </div>
+    <button class="btn ghost" id="btnStuLogout">로그아웃</button>
+  </div>
 
-    // ===== Firebase (기존 프로젝트 그대로 사용) =====
-    const firebaseConfig = {
-      apiKey: "AIzaSyDrZ5KDbkfR3hDj9U0lI2VHhgzNXNE_1cU",
-      authDomain: "school-debate-1.firebaseapp.com",
-      projectId: "school-debate-1",
-      storageBucket: "school-debate-1.firebasestorage.app",
-      messagingSenderId: "711490484046",
-      appId: "1:711490484046:web:1fa6e1400c1451d776101f"
-    };
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
+  <!-- ===== 관리자: 로그인 ===== -->
+  <div id="vAdmLogin" class="hidden">
+    <div class="card" style="max-width:420px;margin:0 auto">
+      <h2>🛡️ 관리자 로그인</h2>
+      <label>비밀번호</label>
+      <input id="admPw" type="password" placeholder="관리자 비밀번호">
+      <div class="error" id="admErr"></div>
+      <button class="btn" id="btnAdmLogin">로그인</button>
+    </div>
+  </div>
 
-    // 새 사이트는 새 데이터 경로 사용 (기존 데이터와 분리)
-    const CLASS_LABEL = '6학년 5반';
-    const CLASS_KEY = 'grade6-class5-2026';
-    const TEACHER_PASSWORD = '112233';
-    const HICLASS_CODE = '39458986';
+  <!-- ===== 관리자: 대시보드 ===== -->
+  <div id="vAdmin" class="hidden">
+    <div class="stats">
+      <div class="stat"><div class="v" id="stCount">0명</div><div class="k">등록 학생</div></div>
+      <div class="stat"><div class="v" id="stRemain">0P</div><div class="k">잔액 합계</div></div>
+      <div class="stat"><div class="v" id="stCum">0P</div><div class="k">누적 합계</div></div>
+    </div>
 
-    const getDataCollection = (name) => collection(db, 'classes', CLASS_KEY, name);
-    const getDataDoc = (name, id) => doc(db, 'classes', CLASS_KEY, name, id);
+    <div class="card">
+      <div class="ctrl">
+        <input id="q" placeholder="🔍 이름 검색" autocomplete="off">
+        <select id="sortBy">
+          <option value="number">등록순</option>
+          <option value="name">이름순</option>
+          <option value="remaining">잔액순 ↓</option>
+          <option value="cumulative">누적순 ↓</option>
+        </select>
+        <button class="btn small ghost" id="btnPins">👁 PIN</button>
+        <button class="btn small" id="btnRoster" style="background:#0ea5e9;box-shadow:none">📋 학생 등록</button>
+        <button class="btn small plus" id="btnBulk" style="box-shadow:none">⚡ 일괄 지급</button>
+      </div>
 
-    // ===== 레벨(등급) 시스템 : 누적 포인트 기준 =====
-    const LEVELS = [
-      { min: 0,    name: '새싹',   emoji: '🌱', grad: 'from-lime-400 to-green-500',    bar: 'bg-green-500' },
-      { min: 100,  name: '클로버', emoji: '🍀', grad: 'from-emerald-400 to-teal-500',  bar: 'bg-teal-500' },
-      { min: 300,  name: '별',     emoji: '⭐', grad: 'from-amber-400 to-orange-500',  bar: 'bg-amber-500' },
-      { min: 600,  name: '불꽃',   emoji: '🔥', grad: 'from-orange-400 to-rose-500',   bar: 'bg-rose-500' },
-      { min: 1000, name: '다이아', emoji: '💎', grad: 'from-sky-400 to-indigo-500',    bar: 'bg-sky-500' },
-      { min: 2000, name: '왕관',   emoji: '👑', grad: 'from-violet-500 to-fuchsia-500',bar: 'bg-violet-500' },
-    ];
-    const getLevel = (c) => [...LEVELS].reverse().find(l => (c || 0) >= l.min) || LEVELS[0];
-    const getNextLevel = (c) => LEVELS.find(l => l.min > (c || 0)) || null;
-
-    // ===== 숫자 카운트업 =====
-    const CountUp = ({ value, duration = 900 }) => {
-      const [display, setDisplay] = useState(0);
-      const prevRef = useRef(0);
-      useEffect(() => {
-        const from = prevRef.current, to = Number(value || 0);
-        const start = performance.now();
-        let raf;
-        const step = (now) => {
-          const p = Math.min(1, (now - start) / duration);
-          const eased = 1 - Math.pow(1 - p, 3);
-          setDisplay(Math.round(from + (to - from) * eased));
-          if (p < 1) raf = requestAnimationFrame(step);
-          else prevRef.current = to;
-        };
-        raf = requestAnimationFrame(step);
-        return () => cancelAnimationFrame(raf);
-      }, [value]);
-      return <span>{display.toLocaleString()}</span>;
-    };
-
-    // ===== 명렬표 파싱 (기존 로직 유지) =====
-    const normalizeGender = (value) => {
-      const token = String(value || '').trim().toLowerCase();
-      if (['남','남자','남학생','m','male','boy'].includes(token)) return '남';
-      if (['여','여자','여학생','f','female','girl'].includes(token)) return '여';
-      return '';
-    };
-    const cleanStudentName = (value) => String(value || '')
-      .replace(/^\s*\d+\s*[.)번:-]?\s*/, '').replace(/[()（）]/g, ' ').replace(/\s+/g, ' ').trim();
-    const parseRosterText = (rawText) => {
-      const raw = String(rawText || '').replace(/\r/g, '\n').trim();
-      if (!raw) return [];
-      const candidates = [];
-      raw.split(/\n+/).forEach((line) => {
-        const trimmed = line.trim();
-        if (!trimmed) return;
-        const commaParts = trimmed.split(/[,，;；]+/).map(p => p.trim()).filter(Boolean);
-        const isPairList = commaParts.length > 2 && commaParts.length % 2 === 0 && commaParts.every((p, i) => i % 2 === 0 || normalizeGender(p));
-        if (commaParts.length === 2 && normalizeGender(commaParts[1])) candidates.push(trimmed);
-        else if (isPairList) { for (let i = 0; i < commaParts.length; i += 2) candidates.push(`${commaParts[i]} ${commaParts[i+1]}`); }
-        else if (commaParts.length > 1) candidates.push(...commaParts);
-        else candidates.push(trimmed);
-      });
-      const seen = new Set();
-      const students = [];
-      candidates.forEach((candidate) => {
-        let value = candidate.replace(/^\s*\d+\s*[.)번:-]?\s*/, '').replace(/\t/g, ' ').trim();
-        if (!value) return;
-        if (/^(번호|순번|이름|학생명|성별)(\s|$)/.test(value) || (value.includes('이름') && value.includes('성별'))) return;
-        if (normalizeGender(value)) return;
-        let gender = '', name = value;
-        const pairMatch = value.match(/^(.+?)[\s,/|:：-]+(남|남자|남학생|여|여자|여학생|m|M|male|female|boy|girl|f|F)$/i);
-        const parenMatch = value.match(/^(.+?)[(（]\s*(남|남자|남학생|여|여자|여학생|m|M|male|female|boy|girl|f|F)\s*[)）]$/i);
-        if (pairMatch) { name = pairMatch[1]; gender = normalizeGender(pairMatch[2]); }
-        else if (parenMatch) { name = parenMatch[1]; gender = normalizeGender(parenMatch[2]); }
-        name = cleanStudentName(name);
-        if (!name || seen.has(name)) return;
-        seen.add(name);
-        students.push({ name, gender: gender || '미입력' });
-      });
-      return students;
-    };
-    const genPin = () => String(Math.floor(1000 + Math.random() * 9000));
-
-    function App() {
-      // ===== 공통 =====
-      const [user, setUser] = useState(null);
-      const [activeTab, setActiveTab] = useState('points');
-      const [copySuccess, setCopySuccess] = useState(false);
-      const [isProcessing, setIsProcessing] = useState(false);
-      const [showTeacherAuth, setShowTeacherAuth] = useState(false);
-      const [isTeacher, setIsTeacher] = useState(false);
-      const [teacherPwd, setTeacherPwd] = useState('');
-      const [teacherError, setTeacherError] = useState('');
-
-      // ===== 데이터 =====
-      const [students, setStudents] = useState([]);
-      const [transactions, setTransactions] = useState([]);
-      const [links, setLinks] = useState([]);
-      const [videos, setVideos] = useState([]);
-      const [surveys, setSurveys] = useState([]);
-      const [surveyBoards, setSurveyBoards] = useState([]);
-      const [surveyResponses, setSurveyResponses] = useState([]);
-
-      // ===== 학생 본인 조회 =====
-      const [studentSession, setStudentSession] = useState(null); // student id
-      const [loginName, setLoginName] = useState('');
-      const [loginPin, setLoginPin] = useState('');
-      const [loginError, setLoginError] = useState('');
-
-      // ===== 선생님 포인트 관리 UI =====
-      const [sortBy, setSortBy] = useState('number');
-      const [searchTerm, setSearchTerm] = useState('');
-      const [selectedStudent, setSelectedStudent] = useState(null);
-      const [pointModalTab, setPointModalTab] = useState('earn');
-      const [amount, setAmount] = useState('');
-      const [desc, setDesc] = useState('');
-      const [bulkOpen, setBulkOpen] = useState(false);
-      const [bulkAmount, setBulkAmount] = useState('');
-      const [bulkDesc, setBulkDesc] = useState('');
-      const [bulkNames, setBulkNames] = useState('');
-      const [bulkFeedbackMsg, setBulkFeedbackMsg] = useState('');
-      const [rosterManagerOpen, setRosterManagerOpen] = useState(false);
-      const [rosterSetupText, setRosterSetupText] = useState('');
-      const [rosterFeedbackMsg, setRosterFeedbackMsg] = useState('');
-      const [showPins, setShowPins] = useState(false);
-
-      // ===== 링크 / 영상 =====
-      const [linkTitle, setLinkTitle] = useState('');
-      const [linkUrl, setLinkUrl] = useState('');
-      const [videoTitle, setVideoTitle] = useState('');
-      const [uploadType, setUploadType] = useState('file');
-      const [videoFile, setVideoFile] = useState(null);
-      const [videoLink, setVideoLink] = useState('');
-      const [uploadProgress, setUploadProgress] = useState(0);
-      const fileInputRef = useRef(null);
-
-      // ===== 설문 =====
-      const [isSubmitted, setIsSubmitted] = useState(false);
-      const [formData, setFormData] = useState({ name: '', nominee: '', reason: '' });
-      const [surveyErrorMsg, setSurveyErrorMsg] = useState('');
-      const [surveyCreateOpen, setSurveyCreateOpen] = useState(false);
-      const [surveyFeedbackMsg, setSurveyFeedbackMsg] = useState('');
-      const [newSurveyForm, setNewSurveyForm] = useState({ title: '', description: '', question: '', isSecret: false });
-      const [surveyAnswerForms, setSurveyAnswerForms] = useState({});
-
-      // ===== 인증 & 리스너 =====
-      useEffect(() => {
-        signInAnonymously(auth).catch((err) => {
-          console.log("익명 로그인 우회:", err);
-          setUser({ uid: 'anonymous-user' });
-        });
-        const unsub = onAuthStateChanged(auth, (u) => { if (u) setUser(u); });
-        return () => unsub();
-      }, []);
-
-      useEffect(() => {
-        if (!user) return;
-        const subs = [
-          onSnapshot(getDataCollection('students'), (snap) => {
-            const data = []; snap.forEach(d => data.push({ id: d.id, ...d.data() }));
-            setStudents(data);
-            setSelectedStudent(prev => prev ? (data.find(s => s.id === prev.id) || null) : prev);
-          }),
-          onSnapshot(getDataCollection('transactions'), (snap) => {
-            const data = []; snap.forEach(d => data.push({ id: d.id, ...d.data() }));
-            data.sort((a, b) => b.timestamp - a.timestamp);
-            setTransactions(data);
-          }),
-          onSnapshot(getDataCollection('links'), (snap) => {
-            const data = []; snap.forEach(d => data.push({ id: d.id, ...d.data() }));
-            data.sort((a, b) => b.timestamp - a.timestamp);
-            setLinks(data);
-          }),
-          onSnapshot(getDataCollection('videos'), (snap) => {
-            const data = []; snap.forEach(d => data.push({ id: d.id, ...d.data() }));
-            data.sort((a, b) => b.timestamp - a.timestamp);
-            setVideos(data);
-          }),
-          onSnapshot(getDataCollection('surveys'), (snap) => {
-            const data = []; snap.forEach(d => data.push({ id: d.id, ...d.data() }));
-            data.sort((a, b) => b.timestamp - a.timestamp);
-            setSurveys(data);
-          }),
-          onSnapshot(getDataCollection('surveyBoards'), (snap) => {
-            const data = []; snap.forEach(d => data.push({ id: d.id, ...d.data() }));
-            data.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-            setSurveyBoards(data);
-          }),
-          onSnapshot(getDataCollection('surveyResponses'), (snap) => {
-            const data = []; snap.forEach(d => data.push({ id: d.id, ...d.data() }));
-            data.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-            setSurveyResponses(data);
-          }),
-        ];
-        return () => subs.forEach(u => u());
-      }, [user]);
-
-      // 학생 로그인 세션 복원
-      useEffect(() => {
-        if (students.length === 0) return;
-        try {
-          const saved = JSON.parse(localStorage.getItem('pb5-student') || 'null');
-          if (saved && !studentSession) {
-            const found = students.find(s => s.name === saved.name && s.pin === saved.pin);
-            if (found) setStudentSession(found.id);
-          }
-        } catch (e) {}
-      }, [students]);
-
-      const myStudent = studentSession ? students.find(s => s.id === studentSession) : null;
-
-      // ===== 공용 함수 =====
-      const copyText = (text) => {
-        const ta = document.createElement("textarea");
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        try { document.execCommand('copy'); setCopySuccess(true); setTimeout(() => setCopySuccess(false), 2500); } catch (e) {}
-        document.body.removeChild(ta);
-      };
-
-      const handleTeacherLogin = (e) => {
-        e.preventDefault();
-        if (teacherPwd === TEACHER_PASSWORD) {
-          setIsTeacher(true); setShowTeacherAuth(false); setTeacherPwd(''); setTeacherError('');
-        } else setTeacherError('비밀번호가 틀렸습니다.');
-      };
-
-      // ===== 학생 본인 조회 =====
-      const handleStudentLogin = (e) => {
-        e.preventDefault();
-        setLoginError('');
-        const name = loginName.trim();
-        const pin = loginPin.trim();
-        if (!name || pin.length !== 4) { setLoginError('이름과 PIN 4자리를 입력해 주세요.'); return; }
-        const found = students.find(s => s.name === name && s.pin === pin);
-        if (!found) { setLoginError('이름 또는 PIN이 맞지 않아요. 선생님께 확인해 주세요!'); return; }
-        setStudentSession(found.id);
-        localStorage.setItem('pb5-student', JSON.stringify({ name: found.name, pin: found.pin }));
-        setLoginName(''); setLoginPin('');
-      };
-      const handleStudentLogout = () => {
-        setStudentSession(null);
-        localStorage.removeItem('pb5-student');
-      };
-
-      // ===== 명렬표 =====
-      const saveRoster = async (parsedRoster, startNumber) => {
-        const studentsPath = getDataCollection('students');
-        for (const [index, s] of parsedRoster.entries()) {
-          await addDoc(studentsPath, {
-            number: startNumber + index, name: s.name, gender: s.gender || '미입력',
-            pin: genPin(), remaining: 0, cumulative: 0, createdAt: Date.now()
-          });
-        }
-      };
-      const handleInitializeClass = async () => {
-        if (!isTeacher || isProcessing) return;
-        const parsed = parseRosterText(rosterSetupText);
-        if (parsed.length === 0) { setRosterFeedbackMsg('학생 명단을 먼저 붙여넣어 주세요. 예: 1 홍길동 남'); return; }
-        setIsProcessing(true);
-        setRosterFeedbackMsg('명렬표를 세팅하는 중입니다...');
-        try {
-          await saveRoster(parsed, 1);
-          setRosterFeedbackMsg(`${parsed.length}명 세팅 완료! 각 학생의 PIN이 자동 발급되었습니다. (PIN 보기로 확인)`);
-          setRosterSetupText('');
-        } catch (e) { console.error(e); setRosterFeedbackMsg('세팅 중 오류가 발생했습니다.'); }
-        setIsProcessing(false);
-      };
-      const handleAddRosterStudents = async () => {
-        if (!isTeacher || isProcessing) return;
-        const parsed = parseRosterText(rosterSetupText);
-        if (parsed.length === 0) { setRosterFeedbackMsg('추가할 학생 명단을 입력해 주세요.'); return; }
-        const existing = new Set(students.map(s => s.name));
-        const fresh = parsed.filter(s => !existing.has(s.name));
-        const skipped = parsed.filter(s => existing.has(s.name)).map(s => s.name);
-        if (fresh.length === 0) { setRosterFeedbackMsg('추가할 새 학생이 없습니다. (같은 이름 중복 제외)'); return; }
-        setIsProcessing(true);
-        try {
-          const maxNum = students.reduce((m, s) => Math.max(m, Number(s.number || 0)), 0);
-          await saveRoster(fresh, maxNum + 1);
-          setRosterFeedbackMsg(`${fresh.length}명 추가 완료${skipped.length ? ` · 중복 제외: ${skipped.join(', ')}` : ''}`);
-          setRosterSetupText('');
-        } catch (e) { console.error(e); setRosterFeedbackMsg('학생 추가 중 오류가 발생했습니다.'); }
-        setIsProcessing(false);
-      };
-      const handleResetClassRoster = async () => {
-        if (!isTeacher || isProcessing) return;
-        if (!window.confirm('명렬표를 초기화하면 학생 목록과 포인트 내역이 모두 삭제됩니다. 계속할까요?')) return;
-        if (!window.confirm('정말 초기화할까요? 복구가 어렵습니다.')) return;
-        setIsProcessing(true);
-        setRosterFeedbackMsg('초기화하는 중입니다...');
-        try {
-          for (const t of transactions) await deleteDoc(getDataDoc('transactions', t.id));
-          for (const s of students) await deleteDoc(getDataDoc('students', s.id));
-          setRosterFeedbackMsg('초기화 완료! 새 명단을 붙여넣어 다시 세팅하세요.');
-          setSelectedStudent(null);
-        } catch (e) { console.error(e); setRosterFeedbackMsg('초기화 중 오류가 발생했습니다.'); }
-        setIsProcessing(false);
-      };
-      const copyPinList = () => {
-        const sorted = [...students].sort((a, b) => Number(a.number || 9999) - Number(b.number || 9999));
-        copyText(sorted.map(s => `${s.number}번 ${s.name} : ${s.pin}`).join('\n'));
-      };
-      const handleChangePin = async (student) => {
-        const pin = window.prompt(`${student.name} 학생의 새 PIN 4자리:`, student.pin || '');
-        if (pin === null) return;
-        if (!/^\d{4}$/.test(pin.trim())) { alert('PIN은 숫자 4자리여야 해요.'); return; }
-        await updateDoc(getDataDoc('students', student.id), { pin: pin.trim() });
-      };
-      const handleDeleteStudent = async (student) => {
-        if (!isTeacher || isProcessing) return;
-        if (!window.confirm(`"${student.name}" 학생을 삭제할까요? 포인트 내역도 함께 지워집니다.`)) return;
-        setIsProcessing(true);
-        try {
-          const myTx = transactions.filter(t => t.studentId === student.id);
-          for (const t of myTx) await deleteDoc(getDataDoc('transactions', t.id));
-          await deleteDoc(getDataDoc('students', student.id));
-          setSelectedStudent(null);
-        } catch (e) { console.error(e); }
-        setIsProcessing(false);
-      };
-
-      // ===== 포인트 적립/차감 =====
-      const handleTransaction = async (type, customAmount = amount, customDesc = desc) => {
-        if (!selectedStudent || isProcessing) return;
-        const parsedAmount = parseInt(customAmount, 10);
-        if (isNaN(parsedAmount) || parsedAmount <= 0) return;
-        if (!customDesc.trim()) return;
-        const currentRemaining = selectedStudent.remaining || 0;
-        if (type === 'spend' && currentRemaining < parsedAmount) return;
-        setIsProcessing(true);
-        try {
-          await addDoc(getDataCollection('transactions'), {
-            studentId: selectedStudent.id, studentName: selectedStudent.name,
-            type, amount: parsedAmount, description: customDesc.trim(), timestamp: Date.now()
-          });
-          let newRemaining = selectedStudent.remaining || 0;
-          let newCumulative = selectedStudent.cumulative || 0;
-          if (type === 'earn') { newRemaining += parsedAmount; newCumulative += parsedAmount; }
-          else { newRemaining -= parsedAmount; }
-          await updateDoc(getDataDoc('students', selectedStudent.id), { remaining: newRemaining, cumulative: newCumulative });
-          setAmount(''); setDesc('');
-        } catch (e) { console.error(e); }
-        setIsProcessing(false);
-      };
-      const handleCancelTransaction = async (transaction) => {
-        if (!isTeacher || isProcessing) return;
-        const target = students.find(s => s.id === transaction.studentId);
-        if (!target) return;
-        setIsProcessing(true);
-        try {
-          let newRemaining = target.remaining || 0;
-          let newCumulative = target.cumulative || 0;
-          const cancelAmount = Number(transaction.amount || 0);
-          if (transaction.type === 'earn') {
-            newRemaining = Math.max(0, newRemaining - cancelAmount);
-            newCumulative = Math.max(0, newCumulative - cancelAmount);
-          } else newRemaining += cancelAmount;
-          await updateDoc(getDataDoc('students', target.id), { remaining: newRemaining, cumulative: newCumulative });
-          await deleteDoc(getDataDoc('transactions', transaction.id));
-        } catch (e) { console.error(e); }
-        setIsProcessing(false);
-      };
-      const delay = (ms) => new Promise(r => setTimeout(r, ms));
-      const getNamesByGender = (gender) => students
-        .filter(s => !gender || s.gender === gender)
-        .sort((a, b) => (Number(a.number || 9999) - Number(b.number || 9999)) || a.name.localeCompare(b.name))
-        .map(s => s.name).join(', ');
-      const handleBulkEarnByNames = async () => {
-        if (isProcessing) return;
-        const parsedAmount = parseInt(bulkAmount, 10);
-        const cleanDesc = String(bulkDesc || '').trim();
-        const names = String(bulkNames || '').split(/[\n,]+/).map(n => n.trim()).filter(Boolean);
-        if (isNaN(parsedAmount) || parsedAmount <= 0) { setBulkFeedbackMsg('올바른 포인트를 입력해 주세요.'); return; }
-        if (!cleanDesc) { setBulkFeedbackMsg('공통 내역을 적어 주세요.'); return; }
-        if (names.length === 0) { setBulkFeedbackMsg('지급할 학생 이름을 입력해 주세요.'); return; }
-        const missing = names.filter(n => !students.some(s => s.name === n));
-        if (missing.length > 0) { setBulkFeedbackMsg('명렬표에 없는 이름: ' + missing.join(', ')); return; }
-        setIsProcessing(true);
-        setBulkFeedbackMsg('일괄 지급 중입니다...');
-        try {
-          for (const name of names) {
-            const student = students.find(s => s.name === name);
-            if (!student) continue;
-            await updateDoc(getDataDoc('students', student.id), {
-              remaining: (student.remaining || 0) + parsedAmount,
-              cumulative: (student.cumulative || 0) + parsedAmount
-            });
-            await addDoc(getDataCollection('transactions'), {
-              studentId: student.id, studentName: student.name, type: 'earn',
-              amount: parsedAmount, description: cleanDesc, timestamp: Date.now()
-            });
-            await delay(200);
-          }
-          setBulkFeedbackMsg('');
-          setBulkAmount(''); setBulkDesc(''); setBulkNames(''); setBulkOpen(false);
-        } catch (e) { console.error(e); setBulkFeedbackMsg('일괄 지급 중 오류가 발생했습니다.'); }
-        setIsProcessing(false);
-      };
-
-      const filteredAndSortedStudents = [...students].filter(s => s.name.includes(searchTerm)).sort((a, b) => {
-        if (sortBy === 'remaining') return (b.remaining || 0) - (a.remaining || 0);
-        if (sortBy === 'cumulative') return (b.cumulative || 0) - (a.cumulative || 0);
-        if (sortBy === 'name') return a.name.localeCompare(b.name);
-        return (Number(a.number || 9999) - Number(b.number || 9999)) || a.name.localeCompare(b.name);
-      });
-      const openStudentModal = (student) => { setSelectedStudent(student); setPointModalTab('earn'); };
-      const closeModal = () => { setSelectedStudent(null); setAmount(''); setDesc(''); };
-
-      // ===== 영상 =====
-      const handleVideoUpload = async (e) => {
-        e.preventDefault();
-        if (!videoTitle.trim()) return;
-        setIsProcessing(true); setUploadProgress(0);
-        try {
-          const videosPath = getDataCollection('videos');
-          if (uploadType === 'link') {
-            if (!videoLink.trim()) { setIsProcessing(false); return; }
-            let finalUrl = videoLink, videoFormat = 'link';
-            const ytMatch = videoLink.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
-            if (ytMatch) { finalUrl = `https://www.youtube.com/embed/${ytMatch[1]}`; videoFormat = 'youtube'; }
-            else if (!/^https?:\/\//i.test(finalUrl)) finalUrl = 'https://' + finalUrl;
-            await addDoc(videosPath, { title: videoTitle, url: finalUrl, type: videoFormat, timestamp: Date.now() });
-            resetVideoForm();
-          } else {
-            if (!videoFile || videoFile.size > 50 * 1024 * 1024) { alert('50MB 이하 영상만 업로드할 수 있어요.'); setIsProcessing(false); return; }
-            const storageRef = ref(storage, `classes/${CLASS_KEY}/videos/${Date.now()}_${videoFile.name}`);
-            const uploadTask = uploadBytesResumable(storageRef, videoFile);
-            uploadTask.on('state_changed',
-              (snap) => setUploadProgress((snap.bytesTransferred / snap.totalBytes) * 100),
-              (err) => { console.error(err); setIsProcessing(false); },
-              async () => {
-                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                await addDoc(videosPath, { title: videoTitle, url: downloadURL, storagePath: storageRef.fullPath, type: 'file', timestamp: Date.now() });
-                resetVideoForm();
-              });
-            return;
-          }
-        } catch (e) { console.error(e); }
-        if (uploadType === 'link') setIsProcessing(false);
-      };
-      const resetVideoForm = () => {
-        setVideoTitle(''); setVideoLink(''); setVideoFile(null); setUploadProgress(0); setIsProcessing(false);
-        if (fileInputRef.current) fileInputRef.current.value = '';
-      };
-      const handleDeleteVideo = async (video) => {
-        try {
-          if (video.type === 'file' && video.storagePath) {
-            await deleteObject(ref(storage, video.storagePath)).catch(e => console.log(e));
-          }
-          await deleteDoc(getDataDoc('videos', video.id));
-        } catch (e) { console.error(e); }
-      };
-
-      // ===== 링크 =====
-      const handleAddLink = async (e) => {
-        e.preventDefault();
-        if (!linkTitle.trim() || !linkUrl.trim()) return;
-        setIsProcessing(true);
-        try {
-          let formatted = linkUrl;
-          if (!/^https?:\/\//i.test(formatted)) formatted = 'https://' + formatted;
-          await addDoc(getDataCollection('links'), { title: linkTitle, url: formatted, timestamp: Date.now() });
-          setLinkTitle(''); setLinkUrl('');
-        } catch (e) { console.error(e); }
-        setIsProcessing(false);
-      };
-      const handleDeleteLink = async (id) => {
-        try { await deleteDoc(getDataDoc('links', id)); } catch (e) { console.error(e); }
-      };
-
-      // ===== 설문 =====
-      const handleSurveySubmit = async (e) => {
-        e.preventDefault();
-        setIsProcessing(true); setSurveyErrorMsg('');
-        try {
-          await addDoc(getDataCollection('surveys'), { ...formData, userId: user?.uid || 'anon', timestamp: Date.now() });
-          setIsSubmitted(true); setFormData({ name: '', nominee: '', reason: '' });
-        } catch (e) { console.error(e); setSurveyErrorMsg('제출 중 오류가 발생했습니다.'); }
-        setIsProcessing(false);
-      };
-      const handleCreateSurveyBoard = async (e) => {
-        e.preventDefault();
-        if (isProcessing || !isTeacher) return;
-        const title = newSurveyForm.title.trim();
-        const question = newSurveyForm.question.trim();
-        if (!title || !question) { setSurveyFeedbackMsg('설문 제목과 질문은 꼭 입력해 주세요.'); return; }
-        setIsProcessing(true);
-        try {
-          await addDoc(getDataCollection('surveyBoards'), {
-            title, description: newSurveyForm.description.trim(), question,
-            isSecret: !!newSurveyForm.isSecret, createdBy: user?.uid || 'teacher',
-            timestamp: Date.now(), isOpen: true
-          });
-          setNewSurveyForm({ title: '', description: '', question: '', isSecret: false });
-          setSurveyCreateOpen(false);
-          setSurveyFeedbackMsg('새 설문이 추가되었습니다.');
-          setTimeout(() => setSurveyFeedbackMsg(''), 2500);
-        } catch (e) { console.error(e); setSurveyFeedbackMsg('설문 추가 중 오류가 발생했습니다.'); }
-        setIsProcessing(false);
-      };
-      const updateSurveyAnswerForm = (surveyId, field, value) =>
-        setSurveyAnswerForms(prev => ({ ...prev, [surveyId]: { ...(prev[surveyId] || {}), [field]: value } }));
-      const handleSubmitSurveyBoardResponse = async (e, board) => {
-        e.preventDefault();
-        if (isProcessing) return;
-        const form = surveyAnswerForms[board.id] || {};
-        const name = String(form.name || '').trim();
-        const answer = String(form.answer || '').trim();
-        if (!board.isSecret && !name) { setSurveyFeedbackMsg('공개 설문은 이름을 입력해 주세요.'); return; }
-        if (!answer) { setSurveyFeedbackMsg('답변 내용을 입력해 주세요.'); return; }
-        setIsProcessing(true);
-        try {
-          await addDoc(getDataCollection('surveyResponses'), {
-            surveyId: board.id, surveyTitle: board.title,
-            name: board.isSecret ? '' : name, answer,
-            isSecret: !!board.isSecret, userId: user?.uid || 'anon', timestamp: Date.now()
-          });
-          setSurveyAnswerForms(prev => ({ ...prev, [board.id]: { name: '', answer: '' } }));
-          setSurveyFeedbackMsg('설문 응답이 저장되었습니다. 참여 고마워요! 🎉');
-          setTimeout(() => setSurveyFeedbackMsg(''), 2500);
-        } catch (e) { console.error(e); setSurveyFeedbackMsg('응답 저장 중 오류가 발생했습니다.'); }
-        setIsProcessing(false);
-      };
-      const handleDeleteSurveyBoard = async (board) => {
-        if (!isTeacher || isProcessing) return;
-        if (!window.confirm(`"${board.title}" 설문을 삭제할까요?`)) return;
-        setIsProcessing(true);
-        try { await deleteDoc(getDataDoc('surveyBoards', board.id)); } catch (e) { console.error(e); }
-        setIsProcessing(false);
-      };
-      const getResponsesForSurvey = (surveyId) => surveyResponses.filter(r => r.surveyId === surveyId);
-      const getVoteCounts = () => {
-        const counts = {};
-        surveys.forEach(s => {
-          const n = (s.nominee || '').trim();
-          if (n) counts[n] = (counts[n] || 0) + 1;
-        });
-        return Object.entries(counts).sort((a, b) => b[1] - a[1]);
-      };
-
-      const rosterPreview = parseRosterText(rosterSetupText);
-      const getGenderBadgeClass = (gender) => {
-        if (gender === '여') return 'bg-pink-100 text-pink-600';
-        if (gender === '남') return 'bg-sky-100 text-sky-600';
-        return 'bg-slate-200 text-slate-500';
-      };
-      const totalRemaining = students.reduce((sum, s) => sum + (s.remaining || 0), 0);
-      const totalCumulative = students.reduce((sum, s) => sum + (s.cumulative || 0), 0);
-
-      // ===== 탭 구성 =====
-      const TABS = [
-        { id: 'points',  icon: 'coins',                label: '포인트',    on: 'from-amber-400 to-orange-500' },
-        { id: 'videos',  icon: 'clapperboard',         label: '영상',      on: 'from-rose-400 to-pink-500' },
-        { id: 'photos',  icon: 'images',               label: '사진',      on: 'from-emerald-400 to-teal-500' },
-        { id: 'links',   icon: 'link',                 label: '링크',      on: 'from-sky-400 to-blue-500' },
-        { id: 'survey',  icon: 'clipboard-list',       label: '설문',      on: 'from-violet-400 to-purple-500' },
-        { id: 'hiclass', icon: 'mobile-screen-button', label: '하이클래스', on: 'from-slate-600 to-slate-800' },
-      ];
-
-      const myLevel = myStudent ? getLevel(myStudent.cumulative) : null;
-      const myNext = myStudent ? getNextLevel(myStudent.cumulative) : null;
-      const myTx = myStudent ? transactions.filter(t => t.studentId === myStudent.id) : [];
-
-      return (
-        <div className="min-h-screen font-sans text-slate-800 pb-24">
-
-          {/* ===== 복사 토스트 ===== */}
-          {copySuccess && (
-            <div className="fixed top-5 left-1/2 -translate-x-1/2 bg-emerald-500 text-white px-5 py-2.5 rounded-full font-bold shadow-xl flex items-center z-[60] anim-pop">
-              <Icon name="circle-check" size={16} className="mr-2" /> 복사되었습니다!
-            </div>
-          )}
-
-          {/* ===== 헤더 ===== */}
-          <header className="max-w-4xl mx-auto px-4 pt-5">
-            <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 text-white px-7 py-9 shadow-xl shadow-indigo-200">
-              <div className="absolute -top-8 -right-6 text-[110px] opacity-20 anim-float select-none">🎈</div>
-              <div className="absolute bottom-2 right-24 text-4xl opacity-30 anim-float select-none" style={{animationDelay:'1s'}}>✨</div>
-              <div className="absolute -bottom-4 -left-4 text-6xl opacity-20 anim-float select-none" style={{animationDelay:'.5s'}}>🌈</div>
-              <div className="relative z-10 flex justify-between items-start gap-3">
-                <div>
-                  <div className="inline-flex items-center bg-white/20 backdrop-blur px-3 py-1 rounded-full text-xs font-bold mb-3 border border-white/30">
-                    🏫 2026학년도
-                  </div>
-                  <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">
-                    <span className="text-shine">{CLASS_LABEL}</span> 우리 반 공간
-                  </h1>
-                  <p className="text-white/80 font-semibold text-sm sm:text-base">포인트 확인부터 영상·설문까지, 여기 다 있어요! 🚀</p>
-                </div>
-                {isTeacher && (
-                  <span className="bg-white text-indigo-700 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-black flex items-center shadow-md shrink-0">
-                    <Icon name="shield-halved" size={14} className="mr-1.5" /> 선생님 모드
-                  </span>
-                )}
-              </div>
-            </div>
-          </header>
-
-          <main className="max-w-4xl mx-auto px-4 mt-5">
-            {/* ===== 탭 네비게이션 ===== */}
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3 mb-6 stagger">
-              {TABS.map(t => (
-                <button key={t.id} onClick={() => setActiveTab(t.id)}
-                  className={`flex flex-col items-center justify-center py-3 sm:py-4 rounded-2xl font-bold transition-all duration-200 ${
-                    activeTab === t.id
-                      ? `bg-gradient-to-br ${t.on} text-white shadow-lg scale-[1.04] -translate-y-0.5`
-                      : 'bg-white/80 backdrop-blur text-slate-500 hover:bg-white hover:-translate-y-0.5 border border-white shadow-sm'
-                  }`}>
-                  <Icon name={t.icon} size={19} className="mb-1.5" />
-                  <span className="text-[11px] sm:text-[13px] truncate w-full text-center px-1">{t.label}</span>
-                </button>
-              ))}
-            </div>
-
-            {isTeacher && (
-              <button onClick={() => setActiveTab('teacher')}
-                className={`w-full mb-6 py-3 rounded-2xl font-bold transition-all anim-fadeup ${
-                  activeTab === 'teacher'
-                    ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg'
-                    : 'bg-white/80 text-indigo-600 border border-indigo-200 hover:bg-indigo-50'
-                }`}>
-                <Icon name="shield-halved" size={16} className="mr-2" /> 설문 응답 상세 (선생님 전용)
-              </button>
-            )}
-
-            <div className="bg-white/90 backdrop-blur rounded-[2rem] shadow-lg shadow-indigo-100/60 border border-white p-5 sm:p-7 min-h-[420px]">
-
-              {/* ================= 포인트 탭 ================= */}
-              {activeTab === 'points' && !isTeacher && !myStudent && (
-                <div className="anim-fadeup max-w-md mx-auto text-center py-6">
-                  <div className="text-7xl mb-4 anim-float inline-block">🪙</div>
-                  <h2 className="text-2xl font-black text-slate-900 mb-1">내 포인트 확인하기</h2>
-                  <p className="text-slate-400 font-semibold text-sm mb-7">이름과 PIN을 입력하면 나의 포인트만 안전하게 보여요</p>
-                  {students.length === 0 ? (
-                    <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl py-10 px-6 text-slate-400 font-bold">
-                      선생님께서 명렬표를 준비하고 계세요 🛠️
-                    </div>
-                  ) : (
-                    <form onSubmit={handleStudentLogin} className="space-y-3 text-left">
-                      <div>
-                        <label className="block text-xs font-black text-slate-500 mb-1.5 ml-1">이름</label>
-                        <input type="text" value={loginName} onChange={(e) => setLoginName(e.target.value)}
-                          placeholder="예: 홍길동" className="w-full border-2 border-slate-200 rounded-2xl px-5 py-3.5 text-lg font-bold focus:outline-none focus:border-indigo-400 bg-slate-50 focus:bg-white transition-colors" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-black text-slate-500 mb-1.5 ml-1">PIN (비밀번호 4자리)</label>
-                        <input type="password" inputMode="numeric" maxLength={4} value={loginPin} onChange={(e) => setLoginPin(e.target.value.replace(/\D/g,''))}
-                          placeholder="••••" className="w-full border-2 border-slate-200 rounded-2xl px-5 py-3.5 text-lg font-bold tracking-[.4em] focus:outline-none focus:border-indigo-400 bg-slate-50 focus:bg-white transition-colors" />
-                      </div>
-                      {loginError && <div className="bg-rose-50 border border-rose-200 text-rose-600 font-bold text-sm rounded-2xl p-3 text-center anim-pop">{loginError}</div>}
-                      <button type="submit" className="w-full bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white font-black text-lg py-4 rounded-2xl shadow-lg shadow-indigo-200 transition-all hover:-translate-y-0.5">
-                        내 포인트 보러 가기 🚀
-                      </button>
-                      <p className="text-center text-xs text-slate-400 font-semibold pt-1">PIN을 모르면 선생님께 물어보세요!</p>
-                    </form>
-                  )}
-                </div>
-              )}
-
-              {activeTab === 'points' && !isTeacher && myStudent && (
-                <div className="anim-fadeup max-w-lg mx-auto">
-                  {/* 내 포인트 히어로 */}
-                  <div className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${myLevel.grad} text-white p-7 shadow-xl mb-5`}>
-                    <div className="absolute -right-4 -bottom-6 text-[100px] opacity-25 anim-wiggle select-none">{myLevel.emoji}</div>
-                    <div className="relative z-10">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-black text-lg">{myStudent.name}</span>
-                        <span className="bg-white/25 backdrop-blur border border-white/30 px-3 py-1 rounded-full text-xs font-black">
-                          {myLevel.emoji} {myLevel.name} 등급
-                        </span>
-                      </div>
-                      <div className="text-white/70 text-xs font-bold mb-4">{myStudent.number ? `${myStudent.number}번` : ''} · {CLASS_LABEL}</div>
-                      <div className="flex items-end gap-2">
-                        <span className="text-6xl font-black leading-none"><CountUp value={myStudent.remaining || 0} /></span>
-                        <span className="text-xl font-black mb-1 text-white/90">P</span>
-                      </div>
-                      <div className="text-white/80 text-sm font-bold mt-2">지금까지 모은 포인트 총 {(myStudent.cumulative || 0).toLocaleString()}P 🎉</div>
-                      {myNext && (
-                        <div className="mt-5">
-                          <div className="flex justify-between text-xs font-black text-white/90 mb-1.5">
-                            <span>다음 등급 {myNext.emoji} {myNext.name}까지</span>
-                            <span>{(myNext.min - (myStudent.cumulative || 0)).toLocaleString()}P 남음</span>
-                          </div>
-                          <div className="w-full h-3 bg-white/25 rounded-full overflow-hidden">
-                            <div className="h-full bg-white rounded-full transition-all duration-1000"
-                              style={{ width: `${Math.min(100, Math.round(((myStudent.cumulative || 0) - myLevel.min) / (myNext.min - myLevel.min) * 100))}%` }}></div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* 내 포인트 내역 */}
-                  <div className="bg-slate-50 rounded-3xl border border-slate-100 p-5">
-                    <h3 className="font-black text-slate-800 mb-3 flex items-center"><Icon name="clock-rotate-left" size={16} className="mr-2 text-indigo-500" /> 내 포인트 내역</h3>
-                    {myTx.length === 0 ? (
-                      <p className="text-center py-8 text-slate-400 font-bold text-sm">아직 내역이 없어요. 열심히 활동해서 포인트를 모아봐요! 💪</p>
-                    ) : (
-                      <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
-                        {myTx.map(t => (
-                          <div key={t.id} className="bg-white rounded-2xl border border-slate-100 p-3.5 flex items-center justify-between gap-3 shadow-sm">
-                            <div className="min-w-0">
-                              <p className="font-bold text-slate-700 text-sm truncate">{t.type === 'earn' ? '🟢' : '🛍️'} {t.description}</p>
-                              <p className="text-[11px] text-slate-400 font-semibold mt-0.5">{t.timestamp ? new Date(t.timestamp).toLocaleString('ko-KR', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : ''}</p>
-                            </div>
-                            <span className={`font-black shrink-0 ${t.type === 'earn' ? 'text-emerald-500' : 'text-rose-500'}`}>
-                              {t.type === 'earn' ? '+' : '-'}{Number(t.amount).toLocaleString()}P
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <button onClick={handleStudentLogout} className="w-full mt-4 py-3 rounded-2xl font-bold text-slate-400 bg-slate-100 hover:bg-slate-200 transition-colors text-sm">
-                    <Icon name="right-from-bracket" size={14} className="mr-1.5" /> 로그아웃
-                  </button>
-                </div>
-              )}
-
-              {activeTab === 'points' && isTeacher && (
-                <div className="anim-fadeup">
-                  {/* 통계 */}
-                  <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-5">
-                    <div className="bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-100 rounded-2xl p-4 text-center">
-                      <div className="text-2xl font-black text-indigo-600"><CountUp value={students.length} />명</div>
-                      <div className="text-[11px] font-bold text-slate-400 mt-0.5">우리 반 학생</div>
-                    </div>
-                    <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 rounded-2xl p-4 text-center">
-                      <div className="text-2xl font-black text-amber-600"><CountUp value={totalRemaining} />P</div>
-                      <div className="text-[11px] font-bold text-slate-400 mt-0.5">잔액 합계</div>
-                    </div>
-                    <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 rounded-2xl p-4 text-center">
-                      <div className="text-2xl font-black text-emerald-600"><CountUp value={totalCumulative} />P</div>
-                      <div className="text-[11px] font-bold text-slate-400 mt-0.5">누적 합계</div>
-                    </div>
-                  </div>
-
-                  {/* 컨트롤 바 */}
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5 border-b border-slate-100 pb-4">
-                    <h2 className="text-lg font-black text-slate-800 flex items-center shrink-0"><span className="text-2xl mr-2">🪙</span> 포인트 관리</h2>
-                    <div className="flex flex-wrap gap-2">
-                      <div className="relative">
-                        <Icon name="magnifying-glass" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" size={13} />
-                        <input type="text" placeholder="이름 검색" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-                          className="bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-2 text-sm font-bold focus:outline-none focus:border-indigo-400 w-28 sm:w-32" />
-                      </div>
-                      <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}
-                        className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm font-bold focus:outline-none focus:border-indigo-400">
-                        <option value="number">번호순</option>
-                        <option value="name">이름순</option>
-                        <option value="remaining">잔액순 ↓</option>
-                        <option value="cumulative">누적순 ↓</option>
-                      </select>
-                      <button type="button" onClick={() => setShowPins(p => !p)}
-                        className={`px-3.5 py-2 rounded-xl text-sm font-bold border transition-colors ${showPins ? 'bg-violet-600 text-white border-violet-600' : 'bg-white text-violet-600 border-violet-200 hover:bg-violet-50'}`}>
-                        <Icon name={showPins ? 'eye' : 'eye-slash'} size={13} className="mr-1" /> PIN
-                      </button>
-                      <button type="button" onClick={() => { setRosterManagerOpen(p => !p); setRosterFeedbackMsg(''); }}
-                        className="bg-sky-500 hover:bg-sky-600 text-white font-bold px-3.5 py-2 rounded-xl text-sm shadow-sm">
-                        <Icon name="clipboard-list" size={13} className="mr-1" /> 명렬표
-                      </button>
-                      <button type="button" onClick={() => { setBulkOpen(p => !p); setBulkFeedbackMsg(''); }}
-                        className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-3.5 py-2 rounded-xl text-sm shadow-sm">
-                        <Icon name="users" size={13} className="mr-1" /> 일괄 지급
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* 명렬표 관리 패널 */}
-                  {rosterManagerOpen && (
-                    <div className="mb-6 bg-sky-50/70 border border-sky-200 rounded-3xl p-5 anim-pop">
-                      <div className="flex items-start justify-between gap-3 mb-3">
-                        <div>
-                          <h3 className="text-base font-black text-sky-800">📋 명렬표 세팅</h3>
-                          <p className="text-xs text-sky-700/80 font-semibold mt-1 leading-relaxed">
-                            명단을 붙여넣으면 학생마다 <b>PIN 4자리가 자동 발급</b>됩니다. 성별(남/여)은 자동 인식돼요.
-                          </p>
-                        </div>
-                        <button type="button" onClick={() => setRosterManagerOpen(false)} className="text-sky-400 hover:text-sky-700"><Icon name="xmark" size={18} /></button>
-                      </div>
-                      {rosterFeedbackMsg && (
-                        <div className="mb-3 bg-white p-3 rounded-2xl border border-sky-200 text-sky-800 font-bold text-sm text-center shadow-sm anim-pop">{rosterFeedbackMsg}</div>
-                      )}
-                      <textarea value={rosterSetupText} onChange={(e) => setRosterSetupText(e.target.value)}
-                        placeholder={`예시 1) 번호 이름 성별\n1 홍길동 남\n2 김민지 여\n예시 2) 이름만 쉼표로\n홍길동, 김민지, 이서준`}
-                        className="w-full min-h-[130px] border border-sky-200 rounded-2xl px-4 py-3 mb-3 focus:outline-none focus:border-sky-400 bg-white font-mono text-sm" />
-                      {rosterPreview.length > 0 && (
-                        <div className="bg-white border border-sky-100 rounded-2xl p-3 mb-3">
-                          <span className="font-black text-sky-800 text-xs">미리보기 {rosterPreview.length}명</span>
-                          <div className="flex flex-wrap gap-1.5 mt-2">
-                            {rosterPreview.slice(0, 20).map((s, i) => (
-                              <span key={i} className="bg-slate-50 border border-slate-200 rounded-full px-2.5 py-1 text-[11px] font-bold text-slate-600">{i + 1}. {s.name} <span className="text-slate-300">{s.gender}</span></span>
-                            ))}
-                            {rosterPreview.length > 20 && <span className="text-[11px] text-slate-400 px-2 py-1">외 {rosterPreview.length - 20}명</span>}
-                          </div>
-                        </div>
-                      )}
-                      <div className="flex flex-col sm:flex-row gap-2">
-                        <button type="button" onClick={students.length === 0 ? handleInitializeClass : handleAddRosterStudents}
-                          disabled={isProcessing || rosterPreview.length === 0}
-                          className="flex-1 bg-sky-500 hover:bg-sky-600 text-white font-black py-3 rounded-2xl disabled:opacity-40 shadow-sm">
-                          {isProcessing ? '처리 중...' : students.length === 0 ? '이 명단으로 초기 세팅하기' : '새 학생만 추가하기'}
-                        </button>
-                        {students.length > 0 && (
-                          <button type="button" onClick={copyPinList} className="bg-white hover:bg-sky-100 border border-sky-200 text-sky-700 font-bold px-4 py-3 rounded-2xl text-sm">
-                            <Icon name="copy" size={13} className="mr-1" /> PIN 목록 복사
-                          </button>
-                        )}
-                        {students.length > 0 && (
-                          <button type="button" onClick={handleResetClassRoster} disabled={isProcessing}
-                            className="bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 font-bold px-4 py-3 rounded-2xl text-sm disabled:opacity-40">전체 초기화</button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 일괄 지급 패널 */}
-                  {bulkOpen && (
-                    <div className="mb-6 bg-emerald-50/70 border border-emerald-200 rounded-3xl p-5 anim-pop">
-                      <div className="flex items-start justify-between gap-3 mb-3">
-                        <div>
-                          <h3 className="text-base font-black text-emerald-800">⚡ 일괄 포인트 지급</h3>
-                          <p className="text-xs text-emerald-700/80 font-semibold mt-1">이름을 쉼표나 줄바꿈으로 구분해 한 번에 지급합니다.</p>
-                        </div>
-                        <button type="button" onClick={() => setBulkOpen(false)} className="text-emerald-400 hover:text-emerald-700"><Icon name="xmark" size={18} /></button>
-                      </div>
-                      {bulkFeedbackMsg && (
-                        <div className="mb-3 bg-white p-3 rounded-2xl border border-emerald-200 text-emerald-800 font-bold text-sm text-center shadow-sm anim-pop">{bulkFeedbackMsg}</div>
-                      )}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
-                        <input type="number" value={bulkAmount} onChange={(e) => setBulkAmount(e.target.value)} placeholder="포인트 (예: 100)"
-                          className="border border-emerald-200 rounded-2xl px-4 py-3 font-bold focus:outline-none focus:border-emerald-400 bg-white" />
-                        <input type="text" value={bulkDesc} onChange={(e) => setBulkDesc(e.target.value)} placeholder="공통 내역 (예: 발표 우수)"
-                          className="border border-emerald-200 rounded-2xl px-4 py-3 font-bold focus:outline-none focus:border-emerald-400 bg-white" />
-                      </div>
-                      <textarea value={bulkNames} onChange={(e) => setBulkNames(e.target.value)} placeholder="예: 고우민, 권다윤, 김도진"
-                        className="w-full min-h-[80px] border border-emerald-200 rounded-2xl px-4 py-3 mb-2 font-bold focus:outline-none focus:border-emerald-400 bg-white" />
-                      <div className="flex gap-2 mb-3 flex-wrap">
-                        <button type="button" onClick={() => setBulkNames(getNamesByGender(null))} className="px-3 py-1.5 bg-white hover:bg-emerald-100 border border-emerald-200 rounded-xl font-bold text-xs text-emerald-700">전체</button>
-                        <button type="button" onClick={() => setBulkNames(getNamesByGender('남'))} className="px-3 py-1.5 bg-white hover:bg-emerald-100 border border-emerald-200 rounded-xl font-bold text-xs text-emerald-700">남학생</button>
-                        <button type="button" onClick={() => setBulkNames(getNamesByGender('여'))} className="px-3 py-1.5 bg-white hover:bg-emerald-100 border border-emerald-200 rounded-xl font-bold text-xs text-emerald-700">여학생</button>
-                      </div>
-                      <button type="button" onClick={handleBulkEarnByNames} disabled={isProcessing}
-                        className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-3.5 rounded-2xl disabled:opacity-40 shadow-sm">
-                        {isProcessing ? '지급 처리 중...' : '한 번에 지급하기 ⚡'}
-                      </button>
-                    </div>
-                  )}
-
-                  {/* 학생 그리드 */}
-                  {students.length === 0 ? (
-                    <div className="text-center py-16 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
-                      <div className="text-6xl mb-3">🧑‍🏫</div>
-                      <h2 className="text-lg font-black text-slate-700 mb-1">아직 명렬표가 없어요</h2>
-                      <p className="text-sm text-slate-400 font-semibold mb-5">명단을 붙여넣으면 학생 카드와 PIN이 자동으로 만들어져요</p>
-                      <button onClick={() => setRosterManagerOpen(true)} className="bg-gradient-to-r from-indigo-500 to-violet-500 text-white font-black py-3 px-7 rounded-2xl shadow-lg shadow-indigo-200">명렬표 세팅하기</button>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3 stagger">
-                      {filteredAndSortedStudents.map((student) => {
-                        const lv = getLevel(student.cumulative);
-                        return (
-                          <div key={student.id} onClick={() => openStudentModal(student)}
-                            className="group bg-white rounded-3xl p-4 border-2 border-slate-100 hover:border-indigo-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all">
-                            <div className="flex justify-between items-start mb-2.5 gap-1.5">
-                              <div className="min-w-0">
-                                <div className="text-[10px] font-black text-slate-300">{student.number ? `${student.number}번` : ''}</div>
-                                <h3 className="text-[15px] font-black text-slate-800 truncate">{lv.emoji} {student.name}</h3>
-                              </div>
-                              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ${getGenderBadgeClass(student.gender)}`}>{student.gender || '?'}</span>
-                            </div>
-                            <div className="bg-slate-50 group-hover:bg-indigo-50/50 rounded-2xl p-2.5 transition-colors">
-                              <div className="flex justify-between items-center">
-                                <span className="text-[10px] font-bold text-slate-400">잔액</span>
-                                <span className="font-black text-indigo-600 text-[15px]">{(student.remaining || 0).toLocaleString()}P</span>
-                              </div>
-                              <div className="flex justify-between items-center mt-0.5">
-                                <span className="text-[10px] font-bold text-slate-300">누적</span>
-                                <span className="text-[11px] font-bold text-slate-400">{(student.cumulative || 0).toLocaleString()}P</span>
-                              </div>
-                            </div>
-                            {showPins && (
-                              <div className="mt-2 text-center bg-violet-50 border border-violet-100 rounded-xl py-1 text-xs font-black text-violet-600 tracking-widest">PIN {student.pin || '—'}</div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* ================= 영상 탭 ================= */}
-              {activeTab === 'videos' && (
-                <div className="anim-fadeup">
-                  <div className="flex items-center justify-between mb-5 border-b border-slate-100 pb-4">
-                    <h2 className="text-lg font-black text-slate-800 flex items-center"><span className="text-2xl mr-2">🎬</span> 우리 반 영상 갤러리</h2>
-                  </div>
-                  {isTeacher && (
-                    <div className="bg-rose-50/70 border border-rose-100 p-5 rounded-3xl mb-6">
-                      <h3 className="text-sm font-black text-rose-800 mb-3">🎥 새 영상 올리기 (선생님 전용)</h3>
-                      <div className="flex gap-2 mb-3">
-                        <button type="button" onClick={() => { setUploadType('file'); resetVideoForm(); }}
-                          className={`px-4 py-2 text-sm font-bold rounded-xl border transition-colors ${uploadType === 'file' ? 'bg-rose-500 text-white border-rose-500' : 'bg-white text-rose-500 border-rose-200 hover:bg-rose-50'}`}>직접 업로드</button>
-                        <button type="button" onClick={() => { setUploadType('link'); resetVideoForm(); }}
-                          className={`px-4 py-2 text-sm font-bold rounded-xl border transition-colors ${uploadType === 'link' ? 'bg-rose-500 text-white border-rose-500' : 'bg-white text-rose-500 border-rose-200 hover:bg-rose-50'}`}>유튜브 링크</button>
-                      </div>
-                      <form onSubmit={handleVideoUpload} className="flex flex-col gap-2.5">
-                        <input type="text" value={videoTitle} onChange={(e) => setVideoTitle(e.target.value)} placeholder="영상 제목 (예: 가을 운동회 하이라이트)"
-                          className="w-full border border-rose-200 rounded-2xl px-4 py-3 font-bold focus:outline-none focus:border-rose-400 bg-white" required />
-                        {uploadType === 'link' ? (
-                          <input type="text" value={videoLink} onChange={(e) => setVideoLink(e.target.value)} placeholder="유튜브 링크를 붙여넣으세요"
-                            className="w-full border border-rose-200 rounded-2xl px-4 py-3 font-bold focus:outline-none focus:border-rose-400 bg-white" required />
-                        ) : (
-                          <input type="file" accept="video/*" ref={fileInputRef} onChange={(e) => setVideoFile(e.target.files[0])}
-                            className="w-full border border-rose-200 rounded-2xl px-4 py-2.5 bg-white text-sm file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-rose-100 file:text-rose-600 hover:file:bg-rose-200" required />
-                        )}
-                        {uploadProgress > 0 && uploadType === 'file' && (
-                          <div className="w-full bg-white rounded-full h-3 border border-rose-100 overflow-hidden">
-                            <div className="bg-gradient-to-r from-rose-400 to-pink-500 h-full rounded-full transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div>
-                          </div>
-                        )}
-                        <button type="submit" disabled={isProcessing} className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-black px-4 py-3.5 rounded-2xl shadow-sm disabled:opacity-50">
-                          {isProcessing ? `업로드 중... ${Math.round(uploadProgress)}%` : '영상 등록하기'}
-                        </button>
-                      </form>
-                    </div>
-                  )}
-                  {videos.length === 0 ? (
-                    <div className="text-center py-14 text-slate-300">
-                      <div className="text-6xl mb-3">📼</div>
-                      <p className="font-bold text-slate-400">아직 등록된 영상이 없어요</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 stagger">
-                      {videos.map((video) => (
-                        <div key={video.id} className="bg-white border-2 border-slate-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all flex flex-col">
-                          <div className="w-full aspect-video bg-slate-900 relative">
-                            {video.type === 'youtube' ? (
-                              <iframe className="w-full h-full absolute inset-0" src={video.url} title={video.title} frameBorder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
-                            ) : video.type === 'file' ? (
-                              <video controls className="w-full h-full absolute inset-0 outline-none" preload="metadata">
-                                <source src={video.url} />지원하지 않는 브라우저입니다.
-                              </video>
-                            ) : (
-                              <a href={video.url} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center w-full h-full text-white hover:bg-slate-800 transition-colors">
-                                <Icon name="arrow-up-right-from-square" size={28} className="mb-2" />
-                                <span className="font-bold text-sm">외부 링크로 이동</span>
-                              </a>
-                            )}
-                          </div>
-                          <div className="p-4 flex justify-between items-start flex-1">
-                            <div>
-                              <h3 className="font-black text-slate-800 leading-snug">{video.title}</h3>
-                              <p className="text-[11px] text-slate-400 font-semibold mt-1">{new Date(video.timestamp).toLocaleDateString('ko-KR')}</p>
-                            </div>
-                            {isTeacher && (
-                              <button onClick={() => handleDeleteVideo(video)} className="ml-2 w-9 h-9 rounded-xl text-rose-300 hover:text-rose-600 hover:bg-rose-50 transition-colors shrink-0" title="영상 삭제">
-                                <Icon name="trash-can" size={15} />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* ================= 사진 게시판 탭 ================= */}
-              {activeTab === 'photos' && (
-                <div className="anim-fadeup">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 border-b border-slate-100 pb-4">
-                    <div>
-                      <h2 className="text-lg font-black text-slate-800 flex items-center"><span className="text-2xl mr-2">📸</span> 주제별 사진 게시판</h2>
-                      <p className="text-xs text-slate-400 font-semibold mt-1">사진을 제출하면 선생님 Google Drive에 저장돼요</p>
-                    </div>
-                    <a href={PHOTO_DRIVE_FOLDER_URL} target="_blank" rel="noopener noreferrer"
-                      className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 font-black px-4 py-2 rounded-2xl text-sm shrink-0 text-center transition-colors">
-                      <Icon name="folder-open" size={13} className="mr-1.5" /> Drive 폴더
-                    </a>
-                  </div>
-                  {isPhotoBoardUrlReady ? (
-                    <div className="bg-slate-50 border border-slate-200 rounded-3xl overflow-hidden">
-                      <iframe src={PHOTO_BOARD_WEBAPP_URL} title="사진 게시판" className="w-full border-0 bg-white" style={{ minHeight: '1050px' }} loading="lazy" allow="clipboard-read; clipboard-write"></iframe>
-                    </div>
-                  ) : (
-                    <div className="bg-amber-50 border border-amber-200 rounded-3xl p-6 text-amber-900 leading-relaxed">
-                      <h3 className="font-black text-base mb-2">⚠️ Apps Script 웹앱 URL 연결이 필요해요</h3>
-                      <p className="text-sm font-semibold">index.html의 <b>PHOTO_BOARD_WEBAPP_URL</b> 값에 /exec로 끝나는 배포 URL을 넣어 주세요.</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* ================= 링크 탭 ================= */}
-              {activeTab === 'links' && (
-                <div className="anim-fadeup">
-                  <div className="flex items-center justify-between mb-5 border-b border-slate-100 pb-4">
-                    <h2 className="text-lg font-black text-slate-800 flex items-center"><span className="text-2xl mr-2">🔗</span> 우리 반 필수 링크</h2>
-                  </div>
-                  {isTeacher && (
-                    <div className="bg-sky-50/70 border border-sky-100 p-5 rounded-3xl mb-6">
-                      <h3 className="text-sm font-black text-sky-800 mb-3">➕ 새 링크 추가 (선생님 전용)</h3>
-                      <form onSubmit={handleAddLink} className="flex flex-col sm:flex-row gap-2">
-                        <input type="text" value={linkTitle} onChange={(e) => setLinkTitle(e.target.value)} placeholder="링크 제목 (예: 미리캔버스)"
-                          className="flex-1 border border-sky-200 rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-sky-400 bg-white" required />
-                        <input type="text" value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="URL (예: canva.com)"
-                          className="flex-[2] border border-sky-200 rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-sky-400 bg-white" required />
-                        <button type="submit" disabled={isProcessing} className="bg-sky-500 hover:bg-sky-600 text-white font-black px-6 py-3 rounded-2xl text-sm whitespace-nowrap shadow-sm disabled:opacity-50">추가</button>
-                      </form>
-                    </div>
-                  )}
-                  {links.length === 0 ? (
-                    <div className="text-center py-14 text-slate-300">
-                      <div className="text-6xl mb-3">🗂️</div>
-                      <p className="font-bold text-slate-400">아직 등록된 링크가 없어요</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 gap-3 stagger">
-                      {links.map((link) => (
-                        <div key={link.id} className="w-full min-w-0 flex items-stretch gap-2 bg-white border-2 border-slate-100 rounded-3xl p-3 hover:border-sky-300 hover:shadow-md transition-all">
-                          <a href={link.url} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 flex items-center overflow-hidden group">
-                            <div className="bg-gradient-to-br from-sky-400 to-blue-500 text-white w-11 h-11 rounded-2xl flex items-center justify-center mr-4 shrink-0 shadow-sm group-hover:scale-105 transition-transform">
-                              <Icon name="arrow-up-right-from-square" size={15} />
-                            </div>
-                            <div className="min-w-0 flex-1 overflow-hidden">
-                              <h3 className="font-black text-slate-800 break-words group-hover:text-sky-600 transition-colors">{link.title}</h3>
-                              <p className="text-[11px] text-slate-400 font-semibold mt-0.5 break-all leading-relaxed">{link.url}</p>
-                            </div>
-                          </a>
-                          <div className="flex gap-1.5 shrink-0 items-center">
-                            <button type="button" onClick={(e) => { e.preventDefault(); copyText(link.url); }}
-                              className="w-10 h-10 text-sky-500 hover:bg-sky-50 border border-sky-100 rounded-2xl transition-all flex items-center justify-center bg-white" title="링크 복사">
-                              <Icon name="copy" size={14} />
-                            </button>
-                            {isTeacher && (
-                              <button type="button" onClick={(e) => { e.preventDefault(); handleDeleteLink(link.id); }}
-                                className="w-10 h-10 text-rose-400 bg-rose-50 hover:bg-rose-100 border border-rose-100 rounded-2xl transition-all flex items-center justify-center" title="삭제">
-                                <Icon name="trash-can" size={14} />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* ================= 설문 탭 ================= */}
-              {activeTab === 'survey' && (
-                <div className="anim-fadeup max-w-3xl mx-auto">
-                  <div className="flex items-center justify-between mb-5 border-b border-slate-100 pb-4">
-                    <h2 className="text-lg font-black text-slate-800 flex items-center"><span className="text-2xl mr-2">📝</span> 설문 게시판</h2>
-                    {isTeacher && (
-                      <button type="button" onClick={() => setSurveyCreateOpen(p => !p)}
-                        className="bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white font-black px-4 py-2 rounded-2xl text-sm shadow-sm">
-                        <Icon name="plus" size={13} className="mr-1" /> 설문 추가
-                      </button>
-                    )}
-                  </div>
-                  {surveyFeedbackMsg && (
-                    <div className="mb-4 bg-violet-50 border border-violet-200 text-violet-700 font-bold text-sm rounded-2xl p-3 text-center anim-pop">{surveyFeedbackMsg}</div>
-                  )}
-                  {isTeacher && surveyCreateOpen && (
-                    <form onSubmit={handleCreateSurveyBoard} className="mb-6 bg-violet-50/60 border border-violet-100 rounded-3xl p-5 space-y-2.5 anim-pop">
-                      <div className="flex items-center justify-between gap-3">
-                        <h3 className="font-black text-slate-800">✏️ 새 설문 만들기</h3>
-                        <label className="inline-flex items-center gap-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl px-3 py-2 cursor-pointer">
-                          <input type="checkbox" checked={newSurveyForm.isSecret} onChange={(e) => setNewSurveyForm({ ...newSurveyForm, isSecret: e.target.checked })} />
-                          🔒 비밀 설문
-                        </label>
-                      </div>
-                      <input type="text" value={newSurveyForm.title} onChange={(e) => setNewSurveyForm({ ...newSurveyForm, title: e.target.value })}
-                        placeholder="설문 제목 (예: 자리 바꾸기 의견 조사)" className="w-full border border-violet-200 rounded-2xl px-4 py-3 font-bold bg-white focus:outline-none focus:border-violet-400" />
-                      <input type="text" value={newSurveyForm.description} onChange={(e) => setNewSurveyForm({ ...newSurveyForm, description: e.target.value })}
-                        placeholder="설문 설명 (선택)" className="w-full border border-violet-200 rounded-2xl px-4 py-3 font-bold bg-white focus:outline-none focus:border-violet-400" />
-                      <textarea value={newSurveyForm.question} onChange={(e) => setNewSurveyForm({ ...newSurveyForm, question: e.target.value })}
-                        placeholder="질문 내용" className="w-full border border-violet-200 rounded-2xl px-4 py-3 font-bold bg-white min-h-[80px] focus:outline-none focus:border-violet-400" />
-                      <button type="submit" disabled={isProcessing} className="w-full bg-violet-500 hover:bg-violet-600 text-white font-black py-3 rounded-2xl disabled:opacity-50 shadow-sm">
-                        {isProcessing ? '저장 중...' : '설문 게시하기'}
-                      </button>
-                    </form>
-                  )}
-
-                  <div className="grid grid-cols-1 gap-4">
-                    {/* 기본: 1인 1역 추천 */}
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-3xl p-5">
-                      <div className="flex items-start justify-between gap-3 mb-4">
-                        <div>
-                          <div className="inline-flex items-center bg-blue-500 text-white text-[11px] font-black px-3 py-1 rounded-full mb-2">🔵 진행 중</div>
-                          <h3 className="text-lg font-black text-slate-900">이번 달 1인 1역 우수 학생 추천</h3>
-                          <p className="text-sm text-slate-500 font-semibold mt-1">맡은 역할을 성실히 한 친구를 추천해 주세요</p>
-                        </div>
-                        <div className="bg-white text-blue-600 font-black rounded-2xl px-3 py-2 text-sm border border-blue-100 shrink-0">{surveys.length}건</div>
-                      </div>
-                      {isSubmitted ? (
-                        <div className="bg-white p-6 rounded-3xl border border-blue-100 text-center anim-pop">
-                          <div className="text-5xl mb-2">🎉</div>
-                          <h4 className="text-lg font-black text-slate-800 mb-2">제출 완료!</h4>
-                          <button type="button" onClick={() => setIsSubmitted(false)} className="text-blue-500 font-black hover:underline text-sm">다른 친구 또 추천하기</button>
-                        </div>
-                      ) : (
-                        <form onSubmit={handleSurveySubmit} className="bg-white p-4 rounded-3xl border border-blue-100 space-y-2.5">
-                          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 text-[13px] text-amber-800 font-semibold leading-relaxed">
-                            💡 장난 응답을 막기 위해 <b>본인 이름</b>을 적어 주세요. 누가 누구를 추천했는지는 선생님만 볼 수 있어요.
-                          </div>
-                          {surveyErrorMsg && <div className="text-rose-500 text-sm font-bold bg-rose-50 p-3 rounded-2xl">{surveyErrorMsg}</div>}
-                          <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="내 이름"
-                            className="w-full border border-slate-200 rounded-2xl px-4 py-3 font-bold bg-slate-50 focus:outline-none focus:border-blue-400 focus:bg-white transition-colors" required />
-                          <input type="text" value={formData.nominee} onChange={(e) => setFormData({ ...formData, nominee: e.target.value })} placeholder="추천할 친구 이름"
-                            className="w-full border border-slate-200 rounded-2xl px-4 py-3 font-bold bg-slate-50 focus:outline-none focus:border-blue-400 focus:bg-white transition-colors" required />
-                          <textarea value={formData.reason} onChange={(e) => setFormData({ ...formData, reason: e.target.value })} placeholder="추천하는 이유를 구체적으로 적어 주세요"
-                            className="w-full border border-slate-200 rounded-2xl px-4 py-3 font-bold bg-slate-50 min-h-[90px] focus:outline-none focus:border-blue-400 focus:bg-white transition-colors" required />
-                          <button type="submit" disabled={isProcessing} className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-black py-3.5 rounded-2xl shadow-md disabled:opacity-50">
-                            {isProcessing ? '저장 중...' : '📮 추천 제출하기'}
-                          </button>
-                        </form>
-                      )}
-                    </div>
-
-                    {/* 추가 설문들 */}
-                    {surveyBoards.map((board) => {
-                      const responses = getResponsesForSurvey(board.id);
-                      const answerForm = surveyAnswerForms[board.id] || { name: '', answer: '' };
-                      return (
-                        <div key={board.id} className={`rounded-3xl p-5 border ${board.isSecret ? 'bg-purple-50/60 border-purple-100' : 'bg-white border-slate-200'}`}>
-                          <div className="flex items-start justify-between gap-3 mb-3">
-                            <div>
-                              <div className={`inline-flex items-center text-white text-[11px] font-black px-3 py-1 rounded-full mb-2 ${board.isSecret ? 'bg-purple-500' : 'bg-emerald-500'}`}>
-                                {board.isSecret ? '🔒 비밀 설문' : '💬 공개 설문'}
-                              </div>
-                              <h3 className="text-lg font-black text-slate-900">{board.title}</h3>
-                              {board.description && <p className="text-sm text-slate-500 font-semibold mt-1">{board.description}</p>}
-                              <p className="mt-3 bg-white border border-slate-100 rounded-2xl p-3 text-sm font-bold text-slate-700 whitespace-pre-wrap">{board.question}</p>
-                            </div>
-                            <div className="flex flex-col items-end gap-2 shrink-0">
-                              <div className="bg-white text-slate-600 font-black rounded-2xl px-3 py-2 text-sm border border-slate-100">{responses.length}건</div>
-                              {isTeacher && (
-                                <button type="button" onClick={() => handleDeleteSurveyBoard(board)}
-                                  className="w-9 h-9 rounded-xl bg-rose-50 text-rose-500 border border-rose-100 hover:bg-rose-100 flex items-center justify-center" title="설문 삭제">
-                                  <Icon name="trash-can" size={13} />
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                          <form onSubmit={(e) => handleSubmitSurveyBoardResponse(e, board)} className="bg-white p-4 rounded-3xl border border-slate-100 space-y-2.5 mb-3">
-                            {!board.isSecret ? (
-                              <input type="text" value={answerForm.name || ''} onChange={(e) => updateSurveyAnswerForm(board.id, 'name', e.target.value)}
-                                placeholder="내 이름" className="w-full border border-slate-200 rounded-2xl px-4 py-3 font-bold bg-slate-50 focus:outline-none focus:border-violet-400 focus:bg-white transition-colors" />
-                            ) : (
-                              <div className="bg-purple-50 border border-purple-100 rounded-2xl p-3 text-[13px] text-purple-700 font-bold">
-                                🔒 비밀 설문이에요. 이름 없이 제출되고 선생님만 응답을 볼 수 있어요.
-                              </div>
-                            )}
-                            <textarea value={answerForm.answer || ''} onChange={(e) => updateSurveyAnswerForm(board.id, 'answer', e.target.value)}
-                              placeholder="답변을 입력하세요" className="w-full border border-slate-200 rounded-2xl px-4 py-3 font-bold bg-slate-50 min-h-[80px] focus:outline-none focus:border-violet-400 focus:bg-white transition-colors" />
-                            <button type="submit" disabled={isProcessing}
-                              className={`w-full text-white font-black py-3 rounded-2xl disabled:opacity-50 shadow-sm ${board.isSecret ? 'bg-purple-500 hover:bg-purple-600' : 'bg-emerald-500 hover:bg-emerald-600'}`}>
-                              {isProcessing ? '저장 중...' : '응답 제출하기'}
-                            </button>
-                          </form>
-                          {(!board.isSecret || isTeacher) && responses.length > 0 && (
-                            <div className="space-y-2">
-                              <h4 className="font-black text-slate-600 text-xs border-t border-slate-100 pt-3">응답 {responses.length}개</h4>
-                              {responses.map((r) => (
-                                <div key={r.id} className="bg-white p-3 rounded-2xl border border-slate-100 text-sm">
-                                  <div className="flex items-center justify-between mb-1">
-                                    <span className="font-black text-slate-700">{board.isSecret ? '🤫 비밀 응답' : r.name}</span>
-                                    <span className="text-[11px] text-slate-300 font-bold">{r.timestamp ? new Date(r.timestamp).toLocaleDateString('ko-KR') : ''}</span>
-                                  </div>
-                                  <p className="text-slate-500 font-semibold whitespace-pre-wrap">{r.answer}</p>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-
-                    {/* 추천 결과 */}
-                    <div className="bg-white rounded-3xl border border-slate-200 p-5">
-                      <h3 className="font-black text-slate-800 mb-3">🏆 1인 1역 추천 결과</h3>
-                      {!isTeacher ? (
-                        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 text-blue-700 text-sm font-bold leading-relaxed">
-                          추천 결과는 비밀로 운영돼요. 선생님만 확인할 수 있어요! 🤫
-                        </div>
-                      ) : getVoteCounts().length === 0 ? (
-                        <p className="text-center py-6 text-slate-300 font-bold">아직 추천 기록이 없습니다</p>
-                      ) : (
-                        <ul className="space-y-2">
-                          {getVoteCounts().map(([name, count], i) => (
-                            <li key={name} className="flex justify-between items-center bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                              <span className="font-black text-slate-800">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '👏'} {name}</span>
-                              <span className="bg-blue-100 text-blue-600 font-black px-3 py-1 rounded-full text-sm">{count}표</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ================= 하이클래스 탭 ================= */}
-              {activeTab === 'hiclass' && (
-                <div className="anim-fadeup text-center max-w-md mx-auto py-4">
-                  <div className="text-6xl mb-4 anim-float inline-block">📱</div>
-                  <h2 className="text-xl font-black text-slate-900 mb-1">하이클래스에 꼭 가입하세요!</h2>
-                  <p className="text-sm text-slate-400 font-semibold mb-6">알림장과 공지를 받아볼 수 있어요</p>
-                  <div className="bg-gradient-to-br from-slate-50 to-blue-50 p-6 rounded-3xl border border-blue-100 mb-4">
-                    <p className="text-xs text-slate-400 mb-3 font-black">👇 터치해서 초대 코드 복사하기 👇</p>
-                    <button onClick={() => copyText(HICLASS_CODE)}
-                      className="text-3xl font-mono font-black tracking-[.3em] text-blue-600 bg-white py-4 w-full rounded-2xl border-2 border-dashed border-blue-200 hover:border-blue-400 hover:shadow-md transition-all">
-                      {HICLASS_CODE}
-                    </button>
-                  </div>
-                  <button className="w-full bg-slate-800 hover:bg-slate-900 text-white font-black py-4 rounded-2xl flex items-center justify-center shadow-lg transition-colors">
-                    <Icon name="download" size={18} className="mr-2" /> 앱 설치하고 가입하기
-                  </button>
-                </div>
-              )}
-
-              {/* ================= 선생님: 설문 상세 ================= */}
-              {activeTab === 'teacher' && isTeacher && (
-                <div className="anim-fadeup">
-                  <h2 className="text-lg font-black text-slate-800 mb-5 border-b border-slate-100 pb-4"><span className="text-2xl mr-2">🛡️</span> 설문 응답 상세 (선생님 전용)</h2>
-                  <div className="space-y-5">
-                    <div className="bg-slate-50 rounded-3xl p-5 border border-slate-100">
-                      <h3 className="font-black text-slate-800 mb-1">1인 1역 추천 응답</h3>
-                      <p className="text-xs text-slate-400 font-semibold mb-4">학생 화면에는 공개되지 않는 비밀 기록입니다</p>
-                      {surveys.length === 0 ? (
-                        <p className="text-center text-slate-300 font-bold py-6">아직 추천 응답이 없습니다</p>
-                      ) : (
-                        <div className="space-y-2.5">
-                          {surveys.map((s) => (
-                            <div key={s.id} className="bg-white p-4 rounded-2xl border border-slate-100">
-                              <p className="font-black text-slate-700 mb-2 text-sm">{s.name} 님이 👉 <span className="text-blue-600">{s.nominee}</span> 추천</p>
-                              <div className="bg-slate-50 p-3 rounded-xl text-slate-500 text-sm font-semibold">{s.reason}</div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div className="bg-slate-50 rounded-3xl p-5 border border-slate-100">
-                      <h3 className="font-black text-slate-800 mb-4">추가 설문 응답</h3>
-                      {surveyBoards.length === 0 ? (
-                        <p className="text-center text-slate-300 font-bold py-6">아직 추가 설문이 없습니다</p>
-                      ) : (
-                        <div className="space-y-3">
-                          {surveyBoards.map((board) => {
-                            const responses = getResponsesForSurvey(board.id);
-                            return (
-                              <div key={board.id} className="bg-white p-4 rounded-2xl border border-slate-100">
-                                <p className="font-black text-slate-800">{board.title}</p>
-                                <p className="text-[11px] text-slate-400 font-bold mb-3">{board.isSecret ? '🔒 비밀 설문' : '💬 공개 설문'} · {responses.length}건</p>
-                                <div className="space-y-2">
-                                  {responses.length === 0 ? (
-                                    <p className="text-slate-300 text-sm font-bold">응답 없음</p>
-                                  ) : responses.map((r) => (
-                                    <div key={r.id} className="bg-slate-50 p-3 rounded-xl text-sm">
-                                      <div className="flex items-center justify-between mb-1">
-                                        <span className="font-black text-slate-700">{board.isSecret ? '🤫 비밀 응답' : r.name}</span>
-                                        <span className="text-[11px] text-slate-300 font-bold">{r.timestamp ? new Date(r.timestamp).toLocaleString('ko-KR', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : ''}</span>
-                                      </div>
-                                      <p className="text-slate-500 font-semibold whitespace-pre-wrap">{r.answer}</p>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </main>
-
-          {/* ===== 학생 관리 모달 (선생님 전용) ===== */}
-          {selectedStudent && isTeacher && (() => {
-            const lv = getLevel(selectedStudent.cumulative);
-            const studentTx = transactions.filter(t => t.studentId === selectedStudent.id);
-            return (
-              <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
-                <div className="bg-white w-full max-w-md rounded-[2rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh] anim-pop">
-                  {/* 모달 헤더 */}
-                  <div className={`bg-gradient-to-br ${lv.grad} p-6 text-white relative`}>
-                    <button onClick={closeModal} className="absolute top-4 right-4 w-9 h-9 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"><Icon name="xmark" size={18} /></button>
-                    <div className="flex items-center gap-2 mb-1">
-                      <h2 className="text-2xl font-black">{lv.emoji} {selectedStudent.name}</h2>
-                      <span className="bg-white/25 border border-white/30 px-2.5 py-0.5 rounded-full text-[11px] font-black">{lv.name} 등급</span>
-                    </div>
-                    <div className="text-white/70 text-xs font-bold mb-4">{selectedStudent.number ? `${selectedStudent.number}번` : ''} · {selectedStudent.gender || '성별 미입력'}</div>
-                    <div className="flex gap-2.5 text-sm">
-                      <div className="bg-white/20 backdrop-blur border border-white/20 px-3 py-2.5 rounded-2xl flex-1">
-                        <span className="block text-[10px] font-bold text-white/70 mb-0.5">잔여 포인트</span>
-                        <span className="font-black text-xl">{(selectedStudent.remaining || 0).toLocaleString()} P</span>
-                      </div>
-                      <div className="bg-white/20 backdrop-blur border border-white/20 px-3 py-2.5 rounded-2xl flex-1">
-                        <span className="block text-[10px] font-bold text-white/70 mb-0.5">누적 포인트</span>
-                        <span className="font-black text-xl">{(selectedStudent.cumulative || 0).toLocaleString()} P</span>
-                      </div>
-                    </div>
-                    <div className="flex gap-2 mt-3">
-                      <button onClick={() => handleChangePin(selectedStudent)} className="flex-1 bg-white/20 hover:bg-white/30 border border-white/20 rounded-xl py-2 text-xs font-black transition-colors">
-                        🔑 PIN: {selectedStudent.pin || '—'} (변경)
-                      </button>
-                      <button onClick={() => handleDeleteStudent(selectedStudent)} className="bg-white/20 hover:bg-rose-500/60 border border-white/20 rounded-xl px-3 py-2 text-xs font-black transition-colors">
-                        <Icon name="trash-can" size={12} className="mr-1" /> 삭제
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* 모달 탭 */}
-                  <div className="flex border-b border-slate-100 bg-white">
-                    <button onClick={() => setPointModalTab('earn')} className={`flex-1 py-3 text-sm font-black flex justify-center items-center transition-colors ${pointModalTab === 'earn' ? 'text-emerald-600 border-b-2 border-emerald-500 bg-emerald-50/60' : 'text-slate-400'}`}>
-                      <Icon name="plus" size={14} className="mr-1" /> 적립
-                    </button>
-                    <button onClick={() => setPointModalTab('spend')} className={`flex-1 py-3 text-sm font-black flex justify-center items-center transition-colors ${pointModalTab === 'spend' ? 'text-rose-600 border-b-2 border-rose-500 bg-rose-50/60' : 'text-slate-400'}`}>
-                      <Icon name="minus" size={14} className="mr-1" /> 사용
-                    </button>
-                    <button onClick={() => setPointModalTab('history')} className={`flex-1 py-3 text-sm font-black flex justify-center items-center transition-colors ${pointModalTab === 'history' ? 'text-indigo-600 border-b-2 border-indigo-500 bg-indigo-50/60' : 'text-slate-400'}`}>
-                      <Icon name="clock-rotate-left" size={14} className="mr-1" /> 내역
-                    </button>
-                  </div>
-
-                  <div className="p-5 overflow-y-auto bg-slate-50/70 flex-1">
-                    {pointModalTab === 'earn' && (
-                      <div>
-                        <label className="block text-xs font-black text-slate-500 mb-1.5">포인트 금액</label>
-                        <div className="flex gap-1.5 mb-2 flex-wrap">
-                          {[10, 20, 50, 100].map(v => (
-                            <button key={v} type="button" onClick={() => setAmount(String(v))}
-                              className="px-3.5 py-1.5 bg-white hover:bg-emerald-50 border border-emerald-200 rounded-xl font-black text-sm text-emerald-600 transition-colors">+{v}</button>
-                          ))}
-                        </div>
-                        <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="직접 입력"
-                          className="w-full border border-slate-200 rounded-2xl px-4 py-3 mb-3 font-bold focus:outline-none focus:border-emerald-400 bg-white" />
-                        <label className="block text-xs font-black text-slate-500 mb-1.5">적립 사유</label>
-                        <div className="flex gap-1.5 mb-2 flex-wrap">
-                          {['발표', '과제 우수', '수업 태도', '봉사', '칭찬'].map(r => (
-                            <button key={r} type="button" onClick={() => setDesc(r)}
-                              className={`px-3 py-1.5 rounded-xl font-bold text-xs border transition-colors ${desc === r ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white text-slate-500 border-slate-200 hover:border-emerald-300'}`}>{r}</button>
-                          ))}
-                        </div>
-                        <input type="text" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="직접 입력"
-                          className="w-full border border-slate-200 rounded-2xl px-4 py-3 mb-4 font-bold focus:outline-none focus:border-emerald-400 bg-white" />
-                        <button onClick={() => handleTransaction('earn')} disabled={isProcessing}
-                          className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-black py-4 rounded-2xl shadow-md disabled:opacity-50">
-                          🎁 포인트 지급하기
-                        </button>
-                      </div>
-                    )}
-                    {pointModalTab === 'spend' && (
-                      <div>
-                        <div className="bg-gradient-to-br from-rose-50 to-pink-50 border border-rose-100 rounded-3xl p-4 mb-5">
-                          <h4 className="font-black text-rose-700 text-sm mb-3">🎰 400P 퀵 뽑기 보상</h4>
-                          <div className="flex flex-wrap gap-1.5">
-                            {['선곡권 3곡', '포인트 선물권', '옆 자리 선택', '당첨', '쉬는시간 2분'].map((item) => (
-                              <button key={item} onClick={() => handleTransaction('spend', '400', `뽑기: ${item}`)}
-                                disabled={isProcessing || (selectedStudent.remaining || 0) < 400}
-                                className="bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 text-xs font-black py-2 px-3 rounded-xl shadow-sm disabled:opacity-40 transition-colors">{item}</button>
-                            ))}
-                          </div>
-                          {(selectedStudent.remaining || 0) < 400 && <p className="text-[11px] text-rose-400 font-bold mt-2">잔액이 400P 미만이라 뽑기를 사용할 수 없어요</p>}
-                        </div>
-                        <label className="block text-xs font-black text-slate-500 mb-1.5">수동 차감 금액</label>
-                        <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="예: 100"
-                          className="w-full border border-slate-200 rounded-2xl px-4 py-3 mb-3 font-bold focus:outline-none focus:border-rose-400 bg-white" />
-                        <label className="block text-xs font-black text-slate-500 mb-1.5">사용 내역</label>
-                        <input type="text" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="예: 간식 구매"
-                          className="w-full border border-slate-200 rounded-2xl px-4 py-3 mb-4 font-bold focus:outline-none focus:border-rose-400 bg-white" />
-                        <button onClick={() => handleTransaction('spend')} disabled={isProcessing}
-                          className="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-black py-4 rounded-2xl shadow-md disabled:opacity-50">
-                          🛍️ 포인트 차감하기
-                        </button>
-                      </div>
-                    )}
-                    {pointModalTab === 'history' && (
-                      <div className="space-y-2">
-                        {studentTx.length === 0 ? (
-                          <p className="text-center py-10 text-slate-300 font-bold">기록된 내역이 없습니다</p>
-                        ) : studentTx.map((t) => (
-                          <div key={t.id} className="bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm">
-                            <div className="flex items-center justify-between gap-3">
-                              <div className="min-w-0">
-                                <p className="font-bold text-slate-700 text-sm mb-0.5 truncate">{t.description}</p>
-                                <p className="text-[11px] text-slate-300 font-bold">{t.timestamp ? new Date(t.timestamp).toLocaleString('ko-KR', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : ''}</p>
-                              </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                <span className={`font-black ${t.type === 'earn' ? 'text-emerald-500' : 'text-rose-500'}`}>{t.type === 'earn' ? '+' : '-'}{Number(t.amount).toLocaleString()}P</span>
-                                <button type="button" onClick={() => handleCancelTransaction(t)} disabled={isProcessing}
-                                  className="w-8 h-8 rounded-xl bg-rose-50 text-rose-400 border border-rose-100 hover:bg-rose-100 flex items-center justify-center disabled:opacity-40 transition-colors" title="이 내역 취소(되돌리기)">
-                                  <Icon name="rotate-left" size={12} />
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
-
-          {/* ===== 푸터 ===== */}
-          <footer className="text-center py-10 text-slate-400 text-sm relative max-w-4xl mx-auto px-4">
-            <p className="font-bold">담임선생님 연락처: 010-XXXX-XXXX</p>
-            <p className="mt-1 text-xs text-slate-300 font-semibold">ⓒ 2026 {CLASS_LABEL}. All rights reserved.</p>
-            <div className="absolute right-5 bottom-6">
-              <button onClick={() => setShowTeacherAuth(!showTeacherAuth)}
-                className="w-11 h-11 text-slate-300 hover:text-indigo-500 transition-colors bg-white rounded-2xl shadow-md border border-slate-100 flex items-center justify-center">
-                <Icon name={isTeacher ? "unlock" : "lock"} size={16} />
-              </button>
-            </div>
-            {showTeacherAuth && !isTeacher && (
-              <div className="absolute right-5 bottom-20 bg-white p-5 rounded-3xl shadow-2xl border border-slate-100 text-left w-64 z-50 anim-pop">
-                <p className="font-black text-slate-800 mb-3 text-sm flex items-center"><Icon name="shield-halved" size={14} className="mr-2 text-indigo-500" /> 선생님 관리자 모드</p>
-                <form onSubmit={handleTeacherLogin}>
-                  <input type="password" value={teacherPwd} onChange={(e) => setTeacherPwd(e.target.value)} placeholder="비밀번호"
-                    className="w-full border border-slate-200 rounded-2xl px-4 py-2.5 mb-2 font-bold focus:outline-none focus:border-indigo-400" />
-                  {teacherError && <p className="text-xs text-rose-500 mb-2 font-bold">{teacherError}</p>}
-                  <button type="submit" className="w-full bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white font-black py-3 rounded-2xl transition-colors">로그인</button>
-                </form>
-              </div>
-            )}
-            {isTeacher && showTeacherAuth && (
-              <div className="absolute right-5 bottom-20 bg-white p-4 rounded-3xl shadow-2xl border border-slate-100 text-left w-56 z-50 anim-pop">
-                <button onClick={() => { setIsTeacher(false); setShowTeacherAuth(false); setActiveTab('points'); }}
-                  className="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-black py-3 rounded-2xl text-sm transition-colors">선생님 모드 끄기</button>
-              </div>
-            )}
-          </footer>
+      <!-- 학생 등록 패널 -->
+      <div class="panel blue hidden" id="pRoster">
+        <h3>📋 학생 등록</h3>
+        <p>이름을 쉼표(,)나 줄바꿈으로 붙여넣으면 한 번에 등록됩니다. PIN 4자리는 자동 발급돼요.</p>
+        <div class="notice hidden" id="rosterMsg"></div>
+        <textarea id="rosterText" placeholder="예: 홍길동, 김민지, 이서준&#10;또는 한 줄에 한 명씩"></textarea>
+        <div class="chips" id="rosterPreview" style="margin:10px 0"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn small" id="btnRosterAdd" style="flex:1;background:#0ea5e9;box-shadow:none">등록하기</button>
+          <button class="btn small ghost" id="btnPinCopy">PIN 목록 복사</button>
+          <button class="btn small warn" id="btnReset">전체 초기화</button>
         </div>
-      );
-    }
+      </div>
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
-    }
+      <!-- 일괄 지급 패널 -->
+      <div class="panel green hidden" id="pBulk">
+        <h3>⚡ 일괄 포인트 지급</h3>
+        <p>여러 학생에게 같은 포인트를 한 번에 지급합니다.</p>
+        <div class="notice hidden" id="bulkMsg"></div>
+        <div class="row2">
+          <input id="bulkAmt" type="number" inputmode="numeric" placeholder="포인트 (예: 10)">
+          <input id="bulkDesc" placeholder="사유 (예: 출석)" autocomplete="off">
+        </div>
+        <textarea id="bulkNames" style="margin-top:8px;min-height:80px" placeholder="예: 홍길동, 김민지"></textarea>
+        <div class="chips" style="margin-bottom:4px">
+          <button class="chip" id="btnAllNames">전체 이름 채우기</button>
+        </div>
+        <button class="btn plus" id="btnBulkGo" style="margin-top:8px">한 번에 지급하기 ⚡</button>
+      </div>
 
-    if (window.firebaseModules) startApp();
-    else window.addEventListener('firebase-ready', startApp, { once: true });
-  </script>
+      <div id="stuGrid" class="grid"></div>
+    </div>
+    <button class="btn ghost" id="btnAdmLogout">관리자 로그아웃</button>
+  </div>
+</div>
+
+<!-- ===== 학생 관리 모달 ===== -->
+<div id="modal" class="modal-bg hidden">
+  <div class="modal">
+    <div class="modal-head">
+      <button class="x" id="mClose">✕</button>
+      <h3 id="mName"></h3>
+      <div class="sub" id="mSub"></div>
+      <div class="balances">
+        <div class="bal"><span>잔여 포인트</span><b id="mRemain">0 P</b></div>
+        <div class="bal"><span>누적 포인트</span><b id="mCum">0 P</b></div>
+      </div>
+      <div class="tools">
+        <button id="mPin">🔑 PIN 변경</button>
+        <button id="mDel">🗑 학생 삭제</button>
+      </div>
+    </div>
+    <div class="mtabs">
+      <button class="mtab" id="mtEarn">➕ 적립</button>
+      <button class="mtab" id="mtSpend">➖ 차감</button>
+      <button class="mtab" id="mtHist">🕐 내역</button>
+    </div>
+    <div class="mbody">
+      <!-- 적립 -->
+      <div id="mvEarn">
+        <label>포인트</label>
+        <div class="chips">
+          <button class="chip green" data-amt="1">+1</button>
+          <button class="chip green" data-amt="5">+5</button>
+          <button class="chip green" data-amt="10">+10</button>
+          <button class="chip green" data-amt="50">+50</button>
+          <button class="chip green" data-amt="100">+100</button>
+        </div>
+        <input id="earnAmt" type="number" inputmode="numeric" placeholder="직접 입력" style="margin-top:8px">
+        <label>사유</label>
+        <div class="chips" id="earnChips"></div>
+        <input id="earnDesc" placeholder="직접 입력" style="margin-top:8px" autocomplete="off">
+        <div class="error" id="earnErr"></div>
+        <button class="btn plus" id="btnEarn">🎁 포인트 적립하기</button>
+      </div>
+      <!-- 차감 -->
+      <div id="mvSpend" class="hidden">
+        <label>포인트</label>
+        <input id="spendAmt" type="number" inputmode="numeric" placeholder="예: 100">
+        <label>사유</label>
+        <div class="chips" id="spendChips"></div>
+        <input id="spendDesc" placeholder="직접 입력" style="margin-top:8px" autocomplete="off">
+        <div class="error" id="spendErr"></div>
+        <button class="btn minus" id="btnSpend">🛍️ 포인트 차감하기</button>
+      </div>
+      <!-- 내역 -->
+      <div id="mvHist" class="hidden"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   설정 — 필요하면 여기만 수정하세요
+   ============================================================ */
+var CONFIG = {
+  academyName: '우리 학원',        // 학원 이름
+  adminPassword: '112233',         // 관리자 비밀번호
+  dataKey: 'academy-points-1',     // 데이터 저장 경로 (바꾸면 새로 시작됨)
+  earnReasons: ['출석', '숙제 완료', '수업 태도', '시험 잘 봄', '발표', '칭찬'],
+  spendReasons: ['상점에서 사용', '간식 교환', '선물 교환', '지각', '숙제 미제출']
+};
+var firebaseConfig = {
+  apiKey: "AIzaSyDrZ5KDbkfR3hDj9U0lI2VHhgzNXNE_1cU",
+  authDomain: "school-debate-1.firebaseapp.com",
+  projectId: "school-debate-1",
+  storageBucket: "school-debate-1.firebasestorage.app",
+  messagingSenderId: "711490484046",
+  appId: "1:711490484046:web:1fa6e1400c1451d776101f"
+};
+/* ============================================================ */
+
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+firebase.auth().signInAnonymously().catch(function(e){ console.log('익명 로그인 생략:', e.code); });
+
+function col(name){ return db.collection('academies').doc(CONFIG.dataKey).collection(name); }
+var $ = function(id){ return document.getElementById(id); };
+
+/* ---------- 상태 ---------- */
+var students = [], transactions = [];
+var isAdmin = false, myId = null, selectedId = null, showPins = false;
+
+/* ---------- 유틸 ---------- */
+function toast(msg, bad){
+  var t = $('toast');
+  t.textContent = msg;
+  t.style.background = bad ? '#f43f5e' : '#10b981';
+  t.style.display = 'block';
+  clearTimeout(t._tm);
+  t._tm = setTimeout(function(){ t.style.display='none'; }, 2500);
+}
+function esc(s){ var d=document.createElement('div'); d.textContent=(s==null?'':s); return d.innerHTML; }
+function fmtDate(ts){
+  if(!ts) return '';
+  var d = new Date(ts);
+  return (d.getMonth()+1)+'/'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+function num(n){ return (n||0).toLocaleString(); }
+function genPin(){ return String(Math.floor(1000+Math.random()*9000)); }
+function showErr(id,msg){ var e=$(id); e.textContent=msg; e.style.display='block'; }
+function hideErr(id){ $(id).style.display='none'; }
+function countUp(el, to){
+  var from = el._v || 0; el._v = to;
+  var start = performance.now(), dur = 700;
+  function step(now){
+    var p = Math.min(1,(now-start)/dur), eased = 1-Math.pow(1-p,3);
+    el.textContent = num(Math.round(from+(to-from)*eased));
+    if(p<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+function copyText(text){
+  var ta = document.createElement('textarea');
+  ta.value = text; document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); toast('복사되었습니다!'); }catch(e){}
+  document.body.removeChild(ta);
+}
+function parseNames(raw){
+  var out = [], seen = {};
+  String(raw||'').split(/[\n,，]+/).forEach(function(part){
+    var name = part.replace(/^\s*\d+\s*[.)번:-]?\s*/,'').trim();
+    if(!name || seen[name]) return;
+    seen[name] = 1; out.push(name);
+  });
+  return out;
+}
+
+/* ---------- Firestore 구독 ---------- */
+col('students').onSnapshot(function(snap){
+  students = [];
+  snap.forEach(function(d){ var o=d.data(); o.id=d.id; students.push(o); });
+  renderAll();
+}, function(e){ console.error(e); toast('데이터 연결 오류: '+e.code, true); });
+
+col('transactions').onSnapshot(function(snap){
+  transactions = [];
+  snap.forEach(function(d){ var o=d.data(); o.id=d.id; transactions.push(o); });
+  transactions.sort(function(a,b){ return (b.timestamp||0)-(a.timestamp||0); });
+  renderAll();
+}, function(e){ console.error(e); });
+
+/* ---------- 화면 전환 ---------- */
+function switchTab(t){
+  $('tabStudent').classList.toggle('active', t==='student');
+  $('tabAdmin').classList.toggle('active', t==='admin');
+  $('vStuLogin').classList.toggle('hidden', !(t==='student' && !myId));
+  $('vStuHome').classList.toggle('hidden', !(t==='student' && myId));
+  $('vAdmLogin').classList.toggle('hidden', !(t==='admin' && !isAdmin));
+  $('vAdmin').classList.toggle('hidden', !(t==='admin' && isAdmin));
+  $('adminChip').classList.toggle('hidden', !isAdmin);
+}
+$('tabStudent').onclick = function(){ switchTab('student'); };
+$('tabAdmin').onclick = function(){ switchTab('admin'); };
+
+/* ---------- 학생 로그인 ---------- */
+function findStudent(name, pin){
+  for(var i=0;i<students.length;i++){
+    if(students[i].name===name && students[i].pin===pin) return students[i];
+  }
+  return null;
+}
+$('btnStuLogin').onclick = function(){
+  hideErr('stuErr');
+  var name = $('stuName').value.trim(), pin = $('stuPin').value.trim();
+  if(!name || pin.length!==4){ showErr('stuErr','이름과 PIN 4자리를 입력해 주세요.'); return; }
+  var s = findStudent(name, pin);
+  if(!s){ showErr('stuErr','이름 또는 PIN이 맞지 않아요. 선생님께 확인해 주세요!'); return; }
+  myId = s.id;
+  localStorage.setItem('acadpt-stu', JSON.stringify({name:name, pin:pin}));
+  $('stuName').value=''; $('stuPin').value='';
+  switchTab('student'); renderAll();
+};
+$('stuPin').addEventListener('keydown', function(e){ if(e.key==='Enter') $('btnStuLogin').click(); });
+$('btnStuLogout').onclick = function(){
+  myId = null; localStorage.removeItem('acadpt-stu'); switchTab('student');
+};
+
+/* ---------- 관리자 로그인 ---------- */
+$('btnAdmLogin').onclick = function(){
+  hideErr('admErr');
+  if($('admPw').value === CONFIG.adminPassword){
+    isAdmin = true; $('admPw').value='';
+    sessionStorage.setItem('acadpt-adm','1');
+    switchTab('admin'); renderAll();
+  } else showErr('admErr','비밀번호가 틀렸습니다.');
+};
+$('admPw').addEventListener('keydown', function(e){ if(e.key==='Enter') $('btnAdmLogin').click(); });
+$('btnAdmLogout').onclick = function(){
+  isAdmin = false; sessionStorage.removeItem('acadpt-adm'); switchTab('admin');
+};
+
+/* ---------- 렌더링 ---------- */
+function histHTML(list, withCancel){
+  if(!list.length) return '<div class="empty"><div class="big">📭</div>아직 내역이 없어요</div>';
+  return list.map(function(t){
+    var plus = t.type==='earn';
+    return '<div class="hist-item">'
+      + '<span class="r">'+(plus?'🟢':'🛍️')+' '+esc(t.description)+'</span>'
+      + '<span class="d">'+fmtDate(t.timestamp)+'</span>'
+      + '<span class="'+(plus?'dp':'dm')+'">'+(plus?'+':'-')+num(t.amount)+'P</span>'
+      + (withCancel ? '<button class="cancel-btn" data-cancel="'+t.id+'" title="이 내역 취소">↩</button>' : '')
+      + '</div>';
+  }).join('');
+}
+
+function renderStudentHome(){
+  if(!myId) return;
+  var me = null;
+  for(var i=0;i<students.length;i++) if(students[i].id===myId) me = students[i];
+  if(!me){ myId=null; localStorage.removeItem('acadpt-stu'); switchTab('student'); return; }
+  $('myName').textContent = me.name;
+  countUp($('myPts'), me.remaining||0);
+  $('myCum').textContent = '지금까지 모은 포인트 총 '+num(me.cumulative)+'P 🎉';
+  var mine = transactions.filter(function(t){ return t.studentId===myId; });
+  $('myHist').innerHTML = histHTML(mine, false);
+}
+
+function sortedStudents(){
+  var q = $('q').value.trim(), sortBy = $('sortBy').value;
+  var list = students.filter(function(s){ return !q || s.name.indexOf(q)>=0; });
+  list.sort(function(a,b){
+    if(sortBy==='remaining') return (b.remaining||0)-(a.remaining||0);
+    if(sortBy==='cumulative') return (b.cumulative||0)-(a.cumulative||0);
+    if(sortBy==='name') return a.name.localeCompare(b.name);
+    return (a.createdAt||0)-(b.createdAt||0);
+  });
+  return list;
+}
+
+function renderAdmin(){
+  if(!isAdmin) return;
+  var totR=0, totC=0;
+  students.forEach(function(s){ totR+=s.remaining||0; totC+=s.cumulative||0; });
+  $('stCount').textContent = students.length+'명';
+  $('stRemain').textContent = num(totR)+'P';
+  $('stCum').textContent = num(totC)+'P';
+
+  var list = sortedStudents();
+  if(!students.length){
+    $('stuGrid').innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="big">🧑‍🏫</div>'
+      + '아직 등록된 학생이 없어요<br><span style="font-size:12px;color:#b9bed2">위의 [📋 학생 등록] 버튼으로 명단을 붙여넣어 주세요</span></div>';
+    return;
+  }
+  $('stuGrid').innerHTML = list.map(function(s, i){
+    return '<div class="stu" data-id="'+s.id+'" style="animation-delay:'+Math.min(i*0.03,0.3)+'s">'
+      + '<div class="no">'+(i+1)+'</div>'
+      + '<div class="nm">'+esc(s.name)+'</div>'
+      + '<div class="row"><span>잔액</span><b>'+num(s.remaining)+'P</b></div>'
+      + '<div class="row sub"><span>누적</span><b>'+num(s.cumulative)+'P</b></div>'
+      + (showPins ? '<div class="pin">PIN '+esc(s.pin||'—')+'</div>' : '')
+      + '</div>';
+  }).join('');
+}
+
+function renderModal(){
+  if(!selectedId) return;
+  var s = null;
+  for(var i=0;i<students.length;i++) if(students[i].id===selectedId) s = students[i];
+  if(!s){ closeModal(); return; }
+  $('mName').textContent = s.name;
+  $('mSub').textContent = 'PIN: '+(s.pin||'—');
+  $('mRemain').textContent = num(s.remaining)+' P';
+  $('mCum').textContent = num(s.cumulative)+' P';
+  var mine = transactions.filter(function(t){ return t.studentId===selectedId; });
+  $('mvHist').innerHTML = histHTML(mine, true);
+}
+
+function renderRosterPreview(){
+  var names = parseNames($('rosterText').value);
+  $('rosterPreview').innerHTML = names.slice(0,25).map(function(n,i){
+    return '<span class="chip" style="cursor:default">'+(i+1)+'. '+esc(n)+'</span>';
+  }).join('') + (names.length>25 ? '<span class="chip" style="cursor:default">외 '+(names.length-25)+'명</span>' : '');
+}
+
+function renderAll(){ renderStudentHome(); renderAdmin(); renderModal(); }
+
+/* ---------- 관리자: 컨트롤 ---------- */
+$('q').addEventListener('input', renderAdmin);
+$('sortBy').addEventListener('change', renderAdmin);
+$('btnPins').onclick = function(){
+  showPins = !showPins;
+  this.textContent = showPins ? '🙈 PIN 숨기기' : '👁 PIN';
+  renderAdmin();
+};
+$('btnRoster').onclick = function(){
+  $('pRoster').classList.toggle('hidden');
+  $('pBulk').classList.add('hidden');
+};
+$('btnBulk').onclick = function(){
+  $('pBulk').classList.toggle('hidden');
+  $('pRoster').classList.add('hidden');
+};
+$('rosterText').addEventListener('input', renderRosterPreview);
+
+/* ---------- 관리자: 학생 등록 ---------- */
+var busy = false;
+function rosterNote(msg){
+  var el = $('rosterMsg'); el.textContent = msg; el.classList.remove('hidden');
+  setTimeout(function(){ el.classList.add('hidden'); }, 4000);
+}
+$('btnRosterAdd').onclick = function(){
+  if(busy) return;
+  var names = parseNames($('rosterText').value);
+  if(!names.length){ rosterNote('학생 이름을 먼저 입력해 주세요.'); return; }
+  var existing = {}; students.forEach(function(s){ existing[s.name]=1; });
+  var fresh = names.filter(function(n){ return !existing[n]; });
+  var skipped = names.filter(function(n){ return existing[n]; });
+  if(!fresh.length){ rosterNote('전부 이미 등록된 이름이에요.'); return; }
+  busy = true; rosterNote('등록하는 중입니다...');
+  var chain = Promise.resolve();
+  fresh.forEach(function(name){
+    chain = chain.then(function(){
+      return col('students').add({ name:name, pin:genPin(), remaining:0, cumulative:0, createdAt:Date.now() });
+    });
+  });
+  chain.then(function(){
+    rosterNote(fresh.length+'명 등록 완료! PIN이 자동 발급됐어요.'+(skipped.length?' (중복 제외: '+skipped.join(', ')+')':''));
+    $('rosterText').value=''; renderRosterPreview();
+  }).catch(function(e){ console.error(e); rosterNote('등록 중 오류: '+e.code); })
+  .then(function(){ busy=false; });
+};
+$('btnPinCopy').onclick = function(){
+  if(!students.length){ toast('등록된 학생이 없어요', true); return; }
+  var list = sortedStudents().map(function(s,i){ return (i+1)+'. '+s.name+' : '+(s.pin||'—'); }).join('\n');
+  copyText(list);
+};
+$('btnReset').onclick = function(){
+  if(busy) return;
+  if(!confirm('전체 초기화하면 학생 목록과 포인트 내역이 모두 삭제됩니다. 계속할까요?')) return;
+  if(!confirm('정말 초기화할까요? 복구할 수 없습니다.')) return;
+  busy = true; rosterNote('초기화하는 중입니다...');
+  var chain = Promise.resolve();
+  transactions.forEach(function(t){ chain = chain.then(function(){ return col('transactions').doc(t.id).delete(); }); });
+  students.forEach(function(s){ chain = chain.then(function(){ return col('students').doc(s.id).delete(); }); });
+  chain.then(function(){ rosterNote('초기화 완료!'); })
+  .catch(function(e){ rosterNote('오류: '+e.code); })
+  .then(function(){ busy=false; });
+};
+
+/* ---------- 관리자: 일괄 지급 ---------- */
+function bulkNote(msg){
+  var el = $('bulkMsg'); el.textContent = msg; el.classList.remove('hidden');
+  setTimeout(function(){ el.classList.add('hidden'); }, 4000);
+}
+$('btnAllNames').onclick = function(){
+  $('bulkNames').value = sortedStudents().map(function(s){ return s.name; }).join(', ');
+};
+$('btnBulkGo').onclick = function(){
+  if(busy) return;
+  var amt = parseInt($('bulkAmt').value,10);
+  var desc = $('bulkDesc').value.trim();
+  var names = parseNames($('bulkNames').value);
+  if(isNaN(amt)||amt<=0){ bulkNote('올바른 포인트를 입력해 주세요.'); return; }
+  if(!desc){ bulkNote('사유를 적어 주세요.'); return; }
+  if(!names.length){ bulkNote('지급할 학생 이름을 입력해 주세요.'); return; }
+  var byName = {}; students.forEach(function(s){ byName[s.name]=s; });
+  var missing = names.filter(function(n){ return !byName[n]; });
+  if(missing.length){ bulkNote('등록 안 된 이름: '+missing.join(', ')); return; }
+  busy = true; bulkNote('일괄 지급 중입니다...');
+  var chain = Promise.resolve();
+  names.forEach(function(n){
+    var s = byName[n];
+    chain = chain.then(function(){
+      return col('students').doc(s.id).update({
+        remaining: firebase.firestore.FieldValue.increment(amt),
+        cumulative: firebase.firestore.FieldValue.increment(amt)
+      });
+    }).then(function(){
+      return col('transactions').add({
+        studentId:s.id, studentName:s.name, type:'earn', amount:amt, description:desc, timestamp:Date.now()
+      });
+    });
+  });
+  chain.then(function(){
+    toast(names.length+'명에게 '+num(amt)+'P 지급 완료!');
+    $('bulkAmt').value=''; $('bulkDesc').value=''; $('bulkNames').value='';
+    $('pBulk').classList.add('hidden');
+  }).catch(function(e){ console.error(e); bulkNote('지급 중 오류: '+e.code); })
+  .then(function(){ busy=false; });
+};
+
+/* ---------- 모달 ---------- */
+function openModal(id){
+  selectedId = id;
+  setModalTab('earn');
+  $('earnAmt').value=''; $('earnDesc').value=''; $('spendAmt').value=''; $('spendDesc').value='';
+  hideErr('earnErr'); hideErr('spendErr');
+  document.querySelectorAll('#earnChips .chip, #spendChips .chip, [data-amt]').forEach(function(c){ c.classList.remove('sel'); });
+  renderModal();
+  $('modal').classList.remove('hidden');
+}
+function closeModal(){ selectedId=null; $('modal').classList.add('hidden'); }
+function setModalTab(t){
+  $('mtEarn').className = 'mtab' + (t==='earn' ? ' on-earn' : '');
+  $('mtSpend').className = 'mtab' + (t==='spend' ? ' on-spend' : '');
+  $('mtHist').className = 'mtab' + (t==='hist' ? ' on-hist' : '');
+  $('mvEarn').classList.toggle('hidden', t!=='earn');
+  $('mvSpend').classList.toggle('hidden', t!=='spend');
+  $('mvHist').classList.toggle('hidden', t!=='hist');
+}
+$('mClose').onclick = closeModal;
+$('modal').addEventListener('click', function(e){ if(e.target===$('modal')) closeModal(); });
+$('mtEarn').onclick = function(){ setModalTab('earn'); };
+$('mtSpend').onclick = function(){ setModalTab('spend'); };
+$('mtHist').onclick = function(){ setModalTab('hist'); };
+
+$('stuGrid').addEventListener('click', function(e){
+  var card = e.target.closest('.stu');
+  if(card) openModal(card.getAttribute('data-id'));
+});
+
+/* 사유 칩 구성 */
+function buildChips(elId, reasons, inputId, cls){
+  $(elId).innerHTML = reasons.map(function(r){ return '<button class="chip '+cls+'">'+esc(r)+'</button>'; }).join('');
+  $(elId).addEventListener('click', function(e){
+    if(!e.target.classList.contains('chip')) return;
+    document.querySelectorAll('#'+elId+' .chip').forEach(function(c){ c.classList.remove('sel'); });
+    e.target.classList.add('sel');
+    $(inputId).value = e.target.textContent;
+  });
+}
+buildChips('earnChips', CONFIG.earnReasons, 'earnDesc', 'green');
+buildChips('spendChips', CONFIG.spendReasons, 'spendDesc', 'red');
+
+/* 금액 칩 */
+document.querySelectorAll('[data-amt]').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.querySelectorAll('[data-amt]').forEach(function(c){ c.classList.remove('sel'); });
+    b.classList.add('sel');
+    $('earnAmt').value = b.getAttribute('data-amt');
+  });
+});
+
+/* ---------- 적립/차감 ---------- */
+function getStudent(id){
+  for(var i=0;i<students.length;i++) if(students[i].id===id) return students[i];
+  return null;
+}
+function doTransaction(type, amtId, descId, errId){
+  if(busy || !selectedId) return;
+  hideErr(errId);
+  var amt = parseInt($(amtId).value,10);
+  var desc = $(descId).value.trim();
+  var s = getStudent(selectedId);
+  if(!s) return;
+  if(isNaN(amt)||amt<=0){ showErr(errId,'1 이상의 포인트를 입력해 주세요.'); return; }
+  if(!desc){ showErr(errId,'사유를 선택하거나 입력해 주세요.'); return; }
+  if(type==='spend' && (s.remaining||0) < amt){
+    showErr(errId,'포인트가 부족해요. (현재 '+num(s.remaining)+'P)'); return;
+  }
+  busy = true;
+  var delta = type==='earn' ? amt : -amt;
+  col('students').doc(s.id).update({
+    remaining: firebase.firestore.FieldValue.increment(delta),
+    cumulative: firebase.firestore.FieldValue.increment(type==='earn'?amt:0)
+  }).then(function(){
+    return col('transactions').add({
+      studentId:s.id, studentName:s.name, type:type, amount:amt, description:desc, timestamp:Date.now()
+    });
+  }).then(function(){
+    toast(s.name+' '+(type==='earn'?'+':'-')+num(amt)+'P 완료!');
+    $(amtId).value=''; $(descId).value='';
+    document.querySelectorAll('[data-amt], #earnChips .chip, #spendChips .chip').forEach(function(c){ c.classList.remove('sel'); });
+  }).catch(function(e){ console.error(e); showErr(errId,'오류: '+e.code); })
+  .then(function(){ busy=false; });
+}
+$('btnEarn').onclick = function(){ doTransaction('earn','earnAmt','earnDesc','earnErr'); };
+$('btnSpend').onclick = function(){ doTransaction('spend','spendAmt','spendDesc','spendErr'); };
+
+/* 내역 취소 */
+$('mvHist').addEventListener('click', function(e){
+  var btn = e.target.closest('[data-cancel]');
+  if(!btn || busy) return;
+  var txId = btn.getAttribute('data-cancel');
+  var tx = null;
+  for(var i=0;i<transactions.length;i++) if(transactions[i].id===txId) tx = transactions[i];
+  if(!tx) return;
+  if(!confirm('이 내역을 취소(되돌리기)할까요?\n'+tx.description+' '+(tx.type==='earn'?'+':'-')+tx.amount+'P')) return;
+  busy = true;
+  var amt = Number(tx.amount||0);
+  var upd = tx.type==='earn'
+    ? { remaining: firebase.firestore.FieldValue.increment(-amt), cumulative: firebase.firestore.FieldValue.increment(-amt) }
+    : { remaining: firebase.firestore.FieldValue.increment(amt) };
+  col('students').doc(tx.studentId).update(upd)
+    .then(function(){ return col('transactions').doc(txId).delete(); })
+    .then(function(){ toast('내역이 취소되었습니다.'); })
+    .catch(function(e){ console.error(e); toast('취소 중 오류: '+e.code, true); })
+    .then(function(){ busy=false; });
+});
+
+/* PIN 변경 / 학생 삭제 */
+$('mPin').onclick = function(){
+  var s = getStudent(selectedId);
+  if(!s) return;
+  var pin = prompt(s.name+' 학생의 새 PIN 4자리:', s.pin||'');
+  if(pin===null) return;
+  pin = pin.trim();
+  if(!/^\d{4}$/.test(pin)){ alert('PIN은 숫자 4자리여야 해요.'); return; }
+  col('students').doc(s.id).update({pin:pin}).then(function(){ toast('PIN이 변경되었습니다.'); });
+};
+$('mDel').onclick = function(){
+  if(busy) return;
+  var s = getStudent(selectedId);
+  if(!s) return;
+  if(!confirm('"'+s.name+'" 학생을 삭제할까요? 포인트 내역도 함께 지워집니다.')) return;
+  busy = true;
+  var mine = transactions.filter(function(t){ return t.studentId===s.id; });
+  var chain = Promise.resolve();
+  mine.forEach(function(t){ chain = chain.then(function(){ return col('transactions').doc(t.id).delete(); }); });
+  chain.then(function(){ return col('students').doc(s.id).delete(); })
+    .then(function(){ toast('삭제되었습니다.'); closeModal(); })
+    .catch(function(e){ toast('삭제 중 오류: '+e.code, true); })
+    .then(function(){ busy=false; });
+};
+
+/* ---------- 초기화 ---------- */
+$('academyName').textContent = CONFIG.academyName + ' 포인트';
+document.title = '⭐ ' + CONFIG.academyName + ' 포인트';
+if(sessionStorage.getItem('acadpt-adm')==='1'){ isAdmin = true; }
+try{
+  var saved = JSON.parse(localStorage.getItem('acadpt-stu')||'null');
+  if(saved){
+    var restore = function(){
+      var s = findStudent(saved.name, saved.pin);
+      if(s){ myId = s.id; switchTab('student'); renderAll(); }
+    };
+    var unsubOnce = col('students').onSnapshot(function(){ restore(); unsubOnce(); });
+  }
+}catch(e){}
+switchTab(isAdmin ? 'admin' : 'student');
+</script>
 </body>
 </html>
