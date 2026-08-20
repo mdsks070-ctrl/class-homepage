@@ -150,6 +150,13 @@
     .chip:hover { background: #f2f4ef; }
   }
 
+  /* ── 반·번호·이름 입력 ── */
+  .who-field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-family: 'Nanum Gothic', sans-serif; font-weight: 800; color: #7a837c; }
+  .who-field input { width: 82px; font-family: inherit; font-size: 16px; padding: 10px 12px; border: 2px solid var(--ink); border-radius: 12px; background: #fff; color: var(--ink); }
+  .who-field.grow { flex: 1; min-width: 130px; }
+  .who-field.grow input { width: 100%; }
+  .who-chip { display: inline-flex; align-items: center; gap: 6px; border: 3px solid var(--ink); border-radius: 999px; background: var(--lime); padding: 9px 16px; font-size: 15px; box-shadow: var(--shadow); }
+
   /* ── 패드·큰 화면: 퀴즈(왼쪽)와 보드(오른쪽)를 나란히 ── */
   .game-left { min-width: 0; }
   .game-right { min-width: 0; margin-top: 12px; }
@@ -203,9 +210,22 @@
     <div class="label">문제 수</div>
     <div class="field-row" id="limitChips"></div>
 
-    <div class="label">이름 (랭킹 등록용)</div>
-    <div class="field-row">
-      <select id="nameSelect"><option value="">이름을 선택하세요</option></select>
+    <div class="label">누구인가요? (랭킹 등록용)</div>
+
+    <!-- 이미 등록된 기기: 이름만 보여주고 바꾸기 버튼 -->
+    <div class="field-row hidden" id="whoSaved">
+      <div class="who-chip"><span id="whoText">—</span></div>
+      <button class="chip" id="whoChange" type="button">✏️ 다른 사람이에요</button>
+    </div>
+
+    <!-- 처음이거나 바꾸는 중 -->
+    <div id="whoForm">
+      <div class="field-row">
+        <label class="who-field">반<input type="number" id="inClass" min="1" max="20" inputmode="numeric" placeholder="4"></label>
+        <label class="who-field">번호<input type="number" id="inNo" min="1" max="50" inputmode="numeric" placeholder="1"></label>
+        <label class="who-field grow">이름<input type="text" id="inName" maxlength="10" placeholder="홍길동"></label>
+      </div>
+      <div class="field-row" id="rosterQuick"></div>
     </div>
 
     <div class="field-row" style="margin-top:16px">
@@ -1143,22 +1163,109 @@ function drawLimitChips() {
 function updateSetupNote() {
   const count = [...selectedUnits].reduce((sum, u) => sum + WORD_BANK[u].words.length, 0);
   const bonus = Math.round(0.05 * Math.max(0, selectedUnits.size - 1) * 100);
+  const who = $("whoForm") && !$("whoForm").classList.contains("hidden") ? readWhoForm() : player;
+  const whoNote = who && who.name ? ` · 기록: ${playerLabel(who)}` : " · 이름을 적으면 랭킹에 올릴 수 있어요";
   $("setupNote").textContent = selectedUnits.size === 0
     ? "단원을 하나 이상 골라주세요."
-    : `단어 ${count}개 · 단원 ${selectedUnits.size}개${bonus ? ` · 최종 점수 +${bonus}%` : ""}`;
+    : `단어 ${count}개 · 단원 ${selectedUnits.size}개${bonus ? ` · 최종 점수 +${bonus}%` : ""}${whoNote}`;
   $("startBtn").disabled = selectedUnits.size === 0 || count < selectedChoices;
 }
 
 $("pickAll").addEventListener("click", () => { selectedUnits = new Set(UNIT_KEYS); drawUnitChips(); updateSetupNote(); });
 $("pickNone").addEventListener("click", () => { selectedUnits = new Set(); drawUnitChips(); updateSetupNote(); });
 
-$("nameSelect").innerHTML = '<option value="">이름을 선택하세요</option>' + CLASS_ROSTER.map((n) => `<option>${n}</option>`).join("");
+/* ── 플레이어 신원: 반·번호·이름 ──
+   localStorage 는 작품 스튜디오의 sandbox iframe 에서 접근 시 예외를 던지므로
+   반드시 try/catch 로 감싼다. 저장이 막혀도 게임은 그대로 돌아가야 한다. */
+const WHO_KEY = "wordGamePlayer";
+let player = { cls: "", no: "", name: "" };
+
+function loadPlayer() {
+  try {
+    const raw = localStorage.getItem(WHO_KEY);
+    if (!raw) return null;
+    const p = JSON.parse(raw);
+    if (p && String(p.name || "").trim()) return { cls: String(p.cls || ""), no: String(p.no || ""), name: String(p.name) };
+  } catch (_) { /* 저장소 접근 불가 — 무시하고 매번 입력받는다 */ }
+  return null;
+}
+function savePlayer(p) {
+  try { localStorage.setItem(WHO_KEY, JSON.stringify(p)); } catch (_) { /* 저장 실패해도 이번 판은 정상 진행 */ }
+}
+function clearPlayer() {
+  try { localStorage.removeItem(WHO_KEY); } catch (_) {}
+}
+
+function playerLabel(p) {
+  const bits = [];
+  if (p.cls) bits.push(`${p.cls}반`);
+  if (p.no) bits.push(`${p.no}번`);
+  return (bits.join(" ") + " " + p.name).trim();
+}
+
+// 신원 키 — 같은 사람의 최고 기록을 합칠 때 쓴다 (반·번호가 이름보다 안정적)
+function playerKey(p) {
+  const cls = String(p.cls || "").trim(), no = String(p.no || "").trim();
+  return (cls && no) ? `${cls}-${no}` : String(p.name || "").trim();
+}
+
+function readWhoForm() {
+  return {
+    cls: $("inClass").value.trim(),
+    no: $("inNo").value.trim(),
+    name: $("inName").value.trim(),
+  };
+}
+
+function showWhoSaved(p) {
+  $("whoText").textContent = playerLabel(p);
+  $("whoSaved").classList.remove("hidden");
+  $("whoForm").classList.add("hidden");
+}
+function showWhoForm(p) {
+  $("inClass").value = p ? p.cls : "";
+  $("inNo").value = p ? p.no : "";
+  $("inName").value = p ? p.name : "";
+  $("whoSaved").classList.add("hidden");
+  $("whoForm").classList.remove("hidden");
+}
+
+// 우리 반(6-4) 명렬표는 한 번 누르면 채워지는 단축 버튼으로 남겨 둔다
+$("rosterQuick").innerHTML =
+  '<span style="font-size:11px;font-family:\'Nanum Gothic\',sans-serif;font-weight:800;color:#7a837c;align-self:center">6학년 4반이면 빠르게 →</span>' +
+  CLASS_ROSTER.map((n, i) => `<button class="chip" type="button" data-name="${n}" data-no="${i + 1}">${n}</button>`).join("");
+[...$("rosterQuick").children].forEach((b) => {
+  if (!b.dataset.name) return;
+  b.addEventListener("click", () => {
+    $("inClass").value = "4";
+    $("inNo").value = b.dataset.no;
+    $("inName").value = b.dataset.name;
+    updateSetupNote();
+  });
+});
+
+$("whoChange").addEventListener("click", () => { clearPlayer(); showWhoForm(player); updateSetupNote(); });
+["inClass", "inNo", "inName"].forEach((id) => $(id).addEventListener("input", updateSetupNote));
+
+(function initPlayer() {
+  const saved = loadPlayer();
+  if (saved) { player = saved; showWhoSaved(saved); }
+  else { showWhoForm(null); }
+})();
 
 function startGame() {
   state.units = [...selectedUnits].sort((a, b) => a - b);
   state.diff = DIFFICULTY[selectedDiff];
   state.choices = selectedChoices;
-  state.name = $("nameSelect").value;
+  // 신원 확정: 폼이 열려 있으면 거기서 읽고 기기에 저장, 아니면 저장된 값 사용
+  if (!$("whoForm").classList.contains("hidden")) {
+    const p = readWhoForm();
+    if (p.name) { player = p; savePlayer(p); showWhoSaved(p); }
+    else { player = { cls: "", no: "", name: "" }; }
+  }
+  state.name = player.name;
+  state.playerClass = player.cls;
+  state.playerNo = player.no;
   state.score = state.quizScore = state.mergeScore = 0;
   state.combo = state.bestCombo = 0;
   state.bestStage = 1; state.wrong = state.correct = 0;
@@ -1244,8 +1351,10 @@ function renderRanking(rows) {
   rows.forEach((r) => {
     const name = String(r.name || "").trim();
     if (!name) return;
-    const prev = best.get(name);
-    if (!prev || rankCompare(r, prev) < 0) best.set(name, r);   // r이 더 좋은 기록이면 교체
+    // 반·번호가 있으면 그것으로 동일인 판정 (이름만 있으면 이름으로)
+    const key = String(r.playerKey || "").trim() || name;
+    const prev = best.get(key);
+    if (!prev || rankCompare(r, prev) < 0) best.set(key, r);   // r이 더 좋은 기록이면 교체
   });
   const list = [...best.values()].sort(rankCompare).slice(0, 20);
   if (list.length === 0) { $("rankBody").innerHTML = '<tr><td colspan="5">아직 기록이 없어요. 첫 주인공이 되어 보세요!</td></tr>'; return; }
@@ -1254,17 +1363,21 @@ function renderRanking(rows) {
     const spec = FRUITS[Math.max(1, Math.min(11, Number(r.bestStage || 1))) - 1];
     const countLabel = Number(r.bestCount || 0) > 1 ? " ×" + r.bestCount : "";
     const units = Array.isArray(r.units) ? r.units.map(unitLabel).join(",").replace(/단원/g, "") : "";
-    return `<tr class="${i < 3 ? "rank-" + (i + 1) : ""}"><td>${medal}</td><td>${r.name}</td><td>${spec.face} ${spec.name}${countLabel}</td><td class="num">${Number(r.score || 0).toLocaleString()}</td><td>${units}</td></tr>`;
+    const who = playerLabel({ cls: r.playerClass, no: r.playerNo, name: r.name });
+    return `<tr class="${i < 3 ? "rank-" + (i + 1) : ""}"><td>${medal}</td><td>${who}</td><td>${spec.face} ${spec.name}${countLabel}</td><td class="num">${Number(r.score || 0).toLocaleString()}</td><td>${units}</td></tr>`;
   }).join("");
 }
 
 $("ovSave").addEventListener("click", async () => {
-  if (!state.name) { alert("이름을 고르지 않아 랭킹에 올릴 수 없어요. 설정 화면에서 이름을 골라주세요."); return; }
+  if (!state.name) { alert("이름을 적지 않아 랭킹에 올릴 수 없어요. 설정 화면에서 반·번호·이름을 적어주세요."); return; }
   if (!db) { alert("랭킹 서버에 연결되어 있지 않습니다."); return; }
   $("ovSave").disabled = true; $("ovSave").textContent = "저장 중…";
   try {
     await fs.addDoc(fs.collection(db, RANK_COLLECTION), {
-      name: state.name, score: state.finalScore,
+      name: state.name,
+      playerClass: state.playerClass || "", playerNo: state.playerNo || "",
+      playerKey: playerKey({ cls: state.playerClass, no: state.playerNo, name: state.name }),
+      score: state.finalScore,
       bestStage: state.bestStage, bestCount: getBestStageCount(),
       correct: state.correct, wrong: state.wrong, bestCombo: state.bestCombo,
       units: state.units, difficulty: state.diff.key, choices: state.choices,
