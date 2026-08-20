@@ -200,6 +200,9 @@
     <div class="label">보기 개수</div>
     <div class="field-row" id="choiceChips"></div>
 
+    <div class="label">문제 수</div>
+    <div class="field-row" id="limitChips"></div>
+
     <div class="label">이름 (랭킹 등록용)</div>
     <div class="field-row">
       <select id="nameSelect"><option value="">이름을 선택하세요</option></select>
@@ -266,10 +269,10 @@
   <!-- ── 랭킹 ── -->
   <div class="panel hidden" id="rankPanel">
     <h2>🏆 우리 반 랭킹</h2>
-    <p class="sub">한 사람당 가장 높은 점수 하나만 올라갑니다.</p>
+    <p class="sub">최고 과일이 높은 사람이 먼저! 같으면 개수, 그다음 점수로 가립니다. 한 사람당 최고 기록 하나만 올라갑니다.</p>
     <div style="overflow-x:auto;margin-top:12px">
       <table>
-        <thead><tr><th>#</th><th>이름</th><th class="num">점수</th><th class="num">최고 단계</th><th>단원</th></tr></thead>
+        <thead><tr><th>#</th><th>이름</th><th>최고 과일</th><th class="num">점수</th><th>단원</th></tr></thead>
         <tbody id="rankBody"><tr><td colspan="5">불러오는 중…</td></tr></tbody>
       </table>
     </div>
@@ -775,8 +778,9 @@ function render(aimX) {
      · 정답      : 기본 10 + 남은시간 보너스 최대 10
                    × 난이도 배수(1.0 / 1.25 / 1.6)
                    × 콤보 배수(연속 정답 1회당 +0.1, 최대 2.0배)
-     · 합치기    : 단계별 고정표 — 한 단계 오를 때마다 약 3배
-                   (2단계 10점 · 5단계 270점 · 8단계 7,000점 · 11단계 200,000점)
+     · 합치기    : 단계별 고정표 — 한 단계 오를 때마다 약 2.5배
+                   (2단계 8점 · 5단계 125점 · 8단계 1,950점 · 11단계 30,000점)
+     · 랭킹      : 최고 과일 단계 → 그 과일 만든 개수 → 점수 순
      · 자유낙하  : 오답으로 떨어진 과일이 낀 합치기는 50%만 인정
      · 여러 단원 : 고른 단원 1개마다 최종 점수 +5%
    ===================================================================== */
@@ -791,8 +795,9 @@ const state = {
 
 const $ = (id) => document.getElementById(id);
 
-/* 합치기 점수 — 한 단계 위 과일이 아래 단계 3개보다 확실히 가치 있게 (×3 성장) */
-const MERGE_SCORES = { 2: 10, 3: 35, 4: 110, 5: 340, 6: 1050, 7: 3200, 8: 9800, 9: 30000, 10: 92000, 11: 280000 };
+/* 합치기 점수 — 랭킹은 최고 과일이 우선이므로 점수는 보조 지표.
+   인플레를 눌러 약 2.5배 성장으로 조정 (수박 30,000점) */
+const MERGE_SCORES = { 2: 8, 3: 20, 4: 50, 5: 125, 6: 310, 7: 780, 8: 1950, 9: 4900, 10: 12000, 11: 30000 };
 function mergeScoreFor(stage) { return MERGE_SCORES[stage] || 0; }
 function comboMult() { return Math.min(2, 1 + Math.min(state.combo, 10) * 0.1); }
 function unitBonus() { return 1 + 0.05 * Math.max(0, state.units.length - 1); }
@@ -803,9 +808,17 @@ function onMerge(stage, hadFree) {
   state.mergeScore += gain;
   state.score += gain;
   if (stage > state.bestStage) state.bestStage = stage;
+  state.stageCounts = state.stageCounts || {};
+  state.stageCounts[stage] = (state.stageCounts[stage] || 0) + 1;
   refreshStats();
   drawLadder();
   return gain;
+}
+
+// 최고 단계 과일을 몇 번 만들었는지 — 랭킹 동률을 가르는 값
+function getBestStageCount() {
+  if (state.bestStage <= 1) return 0;
+  return (state.stageCounts && state.stageCounts[state.bestStage]) || 1;
 }
 
 function refreshStats() {
@@ -856,6 +869,9 @@ function buildOptions(word) {
 
 function nextQuestion() {
   if (state.phase === "over") return;
+  // 문제 수 제한 도달 → 완주로 종료 (무한 출제 방지)
+  if (state.qLimit && state.qCount >= state.qLimit) { gameOver(true); return; }
+  state.qCount = (state.qCount || 0) + 1;
   const word = pickWord();
   state.word = word;
   state.phase = "quiz";
@@ -867,7 +883,7 @@ function nextQuestion() {
   const nextSpec = FRUITS[state.pending.stage - 1];
   $("nextChip").textContent = `다음 ${nextSpec.face} ${nextSpec.name}`;
 
-  $("quizTag").textContent = `${unitLabel(word.unit)} · ${WORD_BANK[word.unit].title}`;
+  $("quizTag").textContent = `문제 ${state.qCount}${state.qLimit ? "/" + state.qLimit : ""} · ${unitLabel(word.unit)} · ${WORD_BANK[word.unit].title}`;
   $("wordText").textContent = word.en;
   $("wordHint").textContent = "알맞은 뜻을 고르세요";
   $("boardNote").textContent = "정답을 맞히면 원하는 자리에 놓을 수 있어요.";
@@ -1043,15 +1059,17 @@ function checkGameOver(dt) {
   if (state.dangerTime > 1.5) gameOver();
 }
 
-function gameOver() {
+function gameOver(finished = false) {
   state.phase = "over";
   running = false;
   const final = Math.round(state.score * unitBonus());
   state.finalScore = final;
-  $("ovIcon").textContent = FRUITS[state.bestStage - 1].face;
-  $("ovTitle").textContent = "게임 끝!";
+  const bestSpec = FRUITS[state.bestStage - 1];
+  const bestCount = getBestStageCount();
+  $("ovIcon").textContent = bestSpec.face;
+  $("ovTitle").textContent = finished ? "완주! 🎉" : "게임 끝!";
   $("ovText").innerHTML =
-    `최종 <b>${final.toLocaleString()}점</b><br>` +
+    `최고 과일 <b>${bestSpec.face} ${bestSpec.name}${bestCount > 1 ? " ×" + bestCount : ""}</b> · <b>${final.toLocaleString()}점</b><br>` +
     `문제 ${state.correct}개 정답 · ${state.wrong}개 오답 · 최고 연속 ${state.bestCombo}<br>` +
     `퀴즈 ${Math.round(state.quizScore).toLocaleString()} + 합치기 ${Math.round(state.mergeScore).toLocaleString()}` +
     (state.units.length > 1 ? ` · 단원 보너스 +${Math.round((unitBonus() - 1) * 100)}%` : "");
@@ -1111,6 +1129,17 @@ function drawChoiceChips() {
   }));
 }
 
+let selectedLimit = 30;   // 기본 30문제 — 무한 플레이로 인한 점수 부풀림 방지
+function drawLimitChips() {
+  const options = [[30, "30문제"], [50, "50문제"], [0, "무제한"]];
+  $("limitChips").innerHTML = options.map(([v, label]) =>
+    `<button class="chip" type="button" data-limit="${v}" aria-pressed="${selectedLimit === v}">${label}</button>`
+  ).join("");
+  [...$("limitChips").children].forEach((b) => b.addEventListener("click", () => {
+    selectedLimit = Number(b.dataset.limit); drawLimitChips(); updateSetupNote();
+  }));
+}
+
 function updateSetupNote() {
   const count = [...selectedUnits].reduce((sum, u) => sum + WORD_BANK[u].words.length, 0);
   const bonus = Math.round(0.05 * Math.max(0, selectedUnits.size - 1) * 100);
@@ -1134,6 +1163,8 @@ function startGame() {
   state.combo = state.bestCombo = 0;
   state.bestStage = 1; state.wrong = state.correct = 0;
   state.pending = null; state.finalScore = 0; state.dangerTime = 0;
+  state.qLimit = selectedLimit; state.qCount = 0;
+  state.stageCounts = {};   // 단계별로 만든 과일 개수 (랭킹 1순위 자료)
   fruits = []; mergeQueue = []; popEffects = []; recentWords = [];
   buildPool();
 
@@ -1201,20 +1232,29 @@ async function initFirebase() {
   }
 }
 
+/* 랭킹 순서: ① 최고 과일 단계 ② 그 과일을 만든 개수 ③ 점수 */
+function rankCompare(a, b) {
+  return (Number(b.bestStage || 1) - Number(a.bestStage || 1))
+      || (Number(b.bestCount || 0) - Number(a.bestCount || 0))
+      || (Number(b.score || 0) - Number(a.score || 0));
+}
+
 function renderRanking(rows) {
   const best = new Map();
   rows.forEach((r) => {
     const name = String(r.name || "").trim();
     if (!name) return;
     const prev = best.get(name);
-    if (!prev || Number(r.score || 0) > Number(prev.score || 0)) best.set(name, r);
+    if (!prev || rankCompare(r, prev) < 0) best.set(name, r);   // r이 더 좋은 기록이면 교체
   });
-  const list = [...best.values()].sort((a, b) => Number(b.score || 0) - Number(a.score || 0)).slice(0, 20);
+  const list = [...best.values()].sort(rankCompare).slice(0, 20);
   if (list.length === 0) { $("rankBody").innerHTML = '<tr><td colspan="5">아직 기록이 없어요. 첫 주인공이 되어 보세요!</td></tr>'; return; }
   $("rankBody").innerHTML = list.map((r, i) => {
     const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (i + 1);
+    const spec = FRUITS[Math.max(1, Math.min(11, Number(r.bestStage || 1))) - 1];
+    const countLabel = Number(r.bestCount || 0) > 1 ? " ×" + r.bestCount : "";
     const units = Array.isArray(r.units) ? r.units.map(unitLabel).join(",").replace(/단원/g, "") : "";
-    return `<tr class="${i < 3 ? "rank-" + (i + 1) : ""}"><td>${medal}</td><td>${r.name}</td><td class="num">${Number(r.score || 0).toLocaleString()}</td><td class="num">${r.bestStage || 1}</td><td>${units}</td></tr>`;
+    return `<tr class="${i < 3 ? "rank-" + (i + 1) : ""}"><td>${medal}</td><td>${r.name}</td><td>${spec.face} ${spec.name}${countLabel}</td><td class="num">${Number(r.score || 0).toLocaleString()}</td><td>${units}</td></tr>`;
   }).join("");
 }
 
@@ -1224,9 +1264,11 @@ $("ovSave").addEventListener("click", async () => {
   $("ovSave").disabled = true; $("ovSave").textContent = "저장 중…";
   try {
     await fs.addDoc(fs.collection(db, RANK_COLLECTION), {
-      name: state.name, score: state.finalScore, bestStage: state.bestStage,
+      name: state.name, score: state.finalScore,
+      bestStage: state.bestStage, bestCount: getBestStageCount(),
       correct: state.correct, wrong: state.wrong, bestCombo: state.bestCombo,
       units: state.units, difficulty: state.diff.key, choices: state.choices,
+      questionLimit: state.qLimit || 0,
       timestamp: Date.now(),
     });
     $("ovSave").textContent = "올렸어요! 🏆";
@@ -1245,7 +1287,7 @@ $("rankClose").addEventListener("click", () => $("rankPanel").classList.add("hid
 /* ── 시작 ── */
 window.addEventListener("resize", () => { if (!$("gamePanel").classList.contains("hidden")) fitCanvas(); });
 try {
-  drawUnitChips(); drawDiffChips(); drawChoiceChips(); updateSetupNote(); drawLadder();
+  drawUnitChips(); drawDiffChips(); drawChoiceChips(); drawLimitChips(); updateSetupNote(); drawLadder();
 } catch (err) {
   showError("화면 준비", err && err.message ? err.message : String(err));
 }
