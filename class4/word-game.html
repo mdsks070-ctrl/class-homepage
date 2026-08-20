@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>영어 단어 합치기 | 6학년 4반</title>
+<title>영어 단어 합치기</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Nanum+Gothic:wght@700;800&display=swap" rel="stylesheet">
@@ -172,8 +172,8 @@
 
   <div class="topbar">
     <div class="brand">
-      <div class="brand-mark">🍉</div>
-      <div><b>영어 단어 합치기</b><span>6학년 4반 · 단어 맞히고 과일 키우기</span></div>
+      <div class="brand-mark" id="brandMark" title="영어 단어 합치기">🍉</div>
+      <div><b>영어 단어 합치기</b><span>단어 맞히고 과일 키우기</span></div>
     </div>
     <button class="btn" id="rankBtn" type="button">🏆 랭킹</button>
   </div>
@@ -225,7 +225,23 @@
         <label class="who-field">번호<input type="number" id="inNo" min="1" max="50" inputmode="numeric" placeholder="1"></label>
         <label class="who-field grow">이름<input type="text" id="inName" maxlength="10" placeholder="홍길동"></label>
       </div>
-      <div class="field-row" id="rosterQuick"></div>
+      <div class="field-row hidden" id="rosterQuick"></div>
+    </div>
+
+    <!-- 비밀 버튼(로고 5번 탭)으로만 열리는 명렬표 관리 -->
+    <div class="panel hidden" id="rosterAdmin" style="margin-top:14px;background:#f4f6ef">
+      <h2 style="font-size:17px">🔑 명렬표 등록 (선생님용)</h2>
+      <p class="sub">이름을 한 줄에 한 명씩 적으면 번호가 순서대로 붙고, 아이들 화면에 단축 버튼이 생깁니다.
+        <b>이 기기에만 저장되며 인터넷에 올라가지 않습니다.</b></p>
+      <div class="field-row">
+        <label class="who-field">반<input type="number" id="rosterCls" min="1" max="20" inputmode="numeric" placeholder="4"></label>
+      </div>
+      <textarea id="rosterText" placeholder="홍길동&#10;김철수&#10;이영희" style="width:100%;min-height:150px;margin-top:10px;font-family:'Nanum Gothic',sans-serif;font-size:14px;font-weight:700;padding:12px;border:2px solid var(--ink);border-radius:12px"></textarea>
+      <div class="field-row">
+        <button class="btn primary" id="rosterSave" type="button">저장</button>
+        <button class="btn" id="rosterClear" type="button">이 기기에서 지우기</button>
+        <button class="btn" id="rosterClose" type="button">닫기</button>
+      </div>
     </div>
 
     <div class="field-row" style="margin-top:16px">
@@ -288,7 +304,7 @@
 
   <!-- ── 랭킹 ── -->
   <div class="panel hidden" id="rankPanel">
-    <h2>🏆 우리 반 랭킹</h2>
+    <h2>🏆 랭킹</h2>
     <p class="sub">최고 과일이 높은 사람이 먼저! 같으면 개수, 그다음 점수로 가립니다. 한 사람당 최고 기록 하나만 올라갑니다.</p>
     <div style="overflow-x:auto;margin-top:12px">
       <table>
@@ -385,7 +401,12 @@ const WORD_BANK = {
 // 100 이상 키는 보너스 단원 — 단원 번호 대신 태그로 표시
 const unitLabel = (u) => Number(u) >= 100 ? (WORD_BANK[u]?.tag || "보너스") : `${u}단원`;
 
-const CLASS_ROSTER = ["고우민","권다윤","김도진","김사랑","김하준","김형민","박성훈","박주희","성아림","양선우","염성빈","오하린","유주원","이가은","이승재","이은","이현성","정하윤","최수호","최준혁","최지안","황아영","황재준","박라희"];
+/* 명렬표는 소스에 넣지 않는다.
+   이 파일은 공개 저장소에 올라가므로 학생 실명이 들어가면 누구나 볼 수 있다.
+   선생님이 비밀 버튼(제목 옆 🍉 5번 탭)으로 등록하면 그 기기에만 저장된다. */
+const ROSTER_KEY = "wordGameRoster";
+let classRoster = [];       // [{ no, name }]
+let rosterClassNo = "";     // 기본 반 번호
 
 /* =====================================================================
    2. 과일 단계 — 11단계 진화
@@ -1230,19 +1251,73 @@ function showWhoForm(p) {
   $("whoForm").classList.remove("hidden");
 }
 
-// 우리 반(6-4) 명렬표는 한 번 누르면 채워지는 단축 버튼으로 남겨 둔다
-$("rosterQuick").innerHTML =
-  '<span style="font-size:11px;font-family:\'Nanum Gothic\',sans-serif;font-weight:800;color:#7a837c;align-self:center">6학년 4반이면 빠르게 →</span>' +
-  CLASS_ROSTER.map((n, i) => `<button class="chip" type="button" data-name="${n}" data-no="${i + 1}">${n}</button>`).join("");
-[...$("rosterQuick").children].forEach((b) => {
-  if (!b.dataset.name) return;
-  b.addEventListener("click", () => {
-    $("inClass").value = "4";
+/* ── 명렬표 단축 버튼: 등록된 기기에서만 보인다 ── */
+function loadRoster() {
+  try {
+    const raw = localStorage.getItem(ROSTER_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    classRoster = Array.isArray(data.list) ? data.list : [];
+    rosterClassNo = String(data.cls || "");
+  } catch (_) { classRoster = []; rosterClassNo = ""; }
+}
+function saveRoster() {
+  try { localStorage.setItem(ROSTER_KEY, JSON.stringify({ cls: rosterClassNo, list: classRoster })); } catch (_) {}
+}
+
+function drawRosterQuick() {
+  const box = $("rosterQuick");
+  if (classRoster.length === 0) { box.innerHTML = ""; box.classList.add("hidden"); return; }
+  box.classList.remove("hidden");
+  box.innerHTML = classRoster.map((s) =>
+    `<button class="chip" type="button" data-name="${s.name}" data-no="${s.no}">${s.no}. ${s.name}</button>`
+  ).join("");
+  [...box.children].forEach((b) => b.addEventListener("click", () => {
+    $("inClass").value = rosterClassNo || $("inClass").value;
     $("inNo").value = b.dataset.no;
     $("inName").value = b.dataset.name;
     updateSetupNote();
-  });
+  }));
+}
+
+/* ── 비밀 버튼: 로고를 5번 연속 탭하면 명렬표 관리창 ── */
+let tapCount = 0, tapTimer = null;
+$("brandMark").addEventListener("click", () => {
+  tapCount += 1;
+  clearTimeout(tapTimer);
+  tapTimer = setTimeout(() => { tapCount = 0; }, 1500);
+  if (tapCount >= 5) {
+    tapCount = 0;
+    openRosterAdmin();
+  }
 });
+
+function openRosterAdmin() {
+  $("rosterAdmin").classList.remove("hidden");
+  $("rosterCls").value = rosterClassNo;
+  $("rosterText").value = classRoster.map((s) => s.name).join("\n");
+  $("rosterAdmin").scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+$("rosterSave").addEventListener("click", () => {
+  const names = $("rosterText").value.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+  rosterClassNo = $("rosterCls").value.trim();
+  classRoster = names.map((name, i) => ({ no: i + 1, name }));
+  saveRoster();
+  drawRosterQuick();
+  $("rosterAdmin").classList.add("hidden");
+});
+$("rosterClear").addEventListener("click", () => {
+  if (!confirm("이 기기에 저장된 명렬표를 지울까요?")) return;
+  classRoster = []; rosterClassNo = "";
+  try { localStorage.removeItem(ROSTER_KEY); } catch (_) {}
+  drawRosterQuick();
+  $("rosterAdmin").classList.add("hidden");
+});
+$("rosterClose").addEventListener("click", () => $("rosterAdmin").classList.add("hidden"));
+
+loadRoster();
+drawRosterQuick();
 
 $("whoChange").addEventListener("click", () => { clearPlayer(); showWhoForm(player); updateSetupNote(); });
 ["inClass", "inNo", "inName"].forEach((id) => $(id).addEventListener("input", updateSetupNote));
