@@ -504,10 +504,18 @@ function stepPhysics(dt) {
           const imp = -(1 + e) * sep / (1 / ma + 1 / mb);
           a.vx -= (imp * nx) / ma; a.vy -= (imp * ny) / ma;
           b.vx += (imp * nx) / mb; b.vy += (imp * ny) / mb;
-          // 스치는 방향 회전 전달
-          const vt = rvx * -ny + rvy * nx;
-          a.va = (a.va || 0) - (vt / a.r) * 0.06;
-          b.va = (b.va || 0) - (vt / b.r) * 0.06;
+          // 회전 전달은 "진짜 부딪힐 때"만.
+          // 쉬는 접촉에서도 주입하면 쌓인 과일이 영원히 돌아버린다
+          // (이 코드는 반복 5회×서브스텝 2회 = 프레임당 최대 10번 실행됨)
+          if (sep < -40) {
+            const vt = rvx * -ny + rvy * nx;
+            a.va = (a.va || 0) - (vt / a.r) * 0.18;
+            b.va = (b.va || 0) - (vt / b.r) * 0.18;
+          } else {
+            // 맞닿아 쉬는 동안엔 접촉 마찰로 서로의 회전을 죽인다
+            a.va = (a.va || 0) * 0.9;
+            b.va = (b.va || 0) * 0.9;
+          }
         }
       }
     }
@@ -516,9 +524,13 @@ function stepPhysics(dt) {
   // 3) 감쇠 + 정지 판정
   for (const f of fruits) {
     f.vx *= 0.995;
-    f.va = (f.va || 0) * 0.985;
+    // 회전: 감쇠 + 상한 + 거의 멈추면 완전히 0 (스냅 정지)
+    f.va = Math.max(-6, Math.min(6, (f.va || 0) * 0.985));
     const speed = Math.hypot(f.vx, f.vy);
-    if (speed < 40) f.settled += dt; else f.settled = 0;
+    if (speed < 40) {
+      f.settled += dt;
+      if (Math.abs(f.va) < 0.15) f.va = 0;
+    } else f.settled = 0;
   }
 }
 
